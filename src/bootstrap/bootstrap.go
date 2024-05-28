@@ -36,7 +36,7 @@ func ConfigPath(file string) string {
 }
 
 func SetLog() {
-	file, err := os.OpenFile("myapp.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
+	file, err := os.OpenFile("gcs.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
 	if err != nil {
 		panic(err)
 	}
