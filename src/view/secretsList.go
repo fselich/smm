@@ -6,6 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"path/filepath"
+	"sort"
 )
 
 type Secret struct {
@@ -13,10 +14,13 @@ type Secret struct {
 	fullPath    string
 	description string
 	index       int
+	secretType  string
+	version     int
+	related     *Secret
 }
 
-func NewSecret(title, fullPath string) Secret {
-	return Secret{title: title, fullPath: fullPath, description: "test"}
+func NewSecret(title, fullPath, secretType string, version int) Secret {
+	return Secret{title: title, fullPath: fullPath, description: "test", secretType: secretType, version: version}
 }
 
 func (t Secret) FilterValue() string {
@@ -24,6 +28,9 @@ func (t Secret) FilterValue() string {
 }
 
 func (t Secret) Title() string {
+	if t.secretType == "version" {
+		return "├─" + t.title
+	}
 	return t.title
 }
 
@@ -37,6 +44,22 @@ func (t Secret) FullPath() string {
 
 func (t Secret) Index() int {
 	return t.index
+}
+
+func (t Secret) Type() string {
+	return t.secretType
+}
+
+func (t Secret) Version() int {
+	return t.version
+}
+
+func (t Secret) Related() *Secret {
+	return t.related
+}
+
+func (t Secret) SetRelated(secret *Secret) {
+	t.related = secret
 }
 
 func (t Secret) SetIndex(index int) {
@@ -70,7 +93,7 @@ func NewSecretsList(width, height int, gcp *gcp2.Gcp) SecretsList {
 
 	var secretList []list.Item
 	for _, secret := range gcpSecrets {
-		secretList = append(secretList, NewSecret(filepath.Base(secret), secret))
+		secretList = append(secretList, NewSecret(filepath.Base(secret), secret, "current", 0))
 	}
 
 	myList.SetItems(secretList)
@@ -92,7 +115,7 @@ func (sl *SecretsList) SelectedItem() Secret {
 func (sl *SecretsList) SetItems(myList list.Model, gcpSecrets []string) {
 	var secretList []list.Item
 	for _, secret := range gcpSecrets {
-		secretList = append(secretList, NewSecret(filepath.Base(secret), secret))
+		secretList = append(secretList, NewSecret(filepath.Base(secret), secret, "current", 0))
 	}
 
 	myList.SetItems(secretList)
@@ -136,6 +159,10 @@ func (sl *SecretsList) Update(msg tea.Msg) (SecretsList, tea.Cmd) {
 	return *sl, cmd
 }
 
+func (sl *SecretsList) InsertItem(index int, item Secret) {
+	sl.teaView.InsertItem(index, item)
+}
+
 func (sl *SecretsList) IsFiltering() bool {
 	return sl.teaView.SettingFilter()
 }
@@ -146,4 +173,23 @@ func (sl *SecretsList) IsFiltered() bool {
 
 func (sl *SecretsList) FilterValue() string {
 	return sl.teaView.FilterValue()
+}
+
+func (sl *SecretsList) DelVersionItems() bool {
+	items := sl.teaView.Items()
+	var indexToDelete []int
+	deleted := false
+	for i, item := range items {
+		if item != nil && item.(Secret).Type() == "version" {
+			indexToDelete = append(indexToDelete, i)
+		}
+	}
+
+	sort.Sort(sort.Reverse(sort.IntSlice(indexToDelete)))
+	for _, index := range indexToDelete {
+		sl.teaView.RemoveItem(index)
+		deleted = true
+	}
+
+	return deleted
 }
