@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/rs/zerolog/log"
 	"os"
+	"strconv"
 )
 
 type Secrets struct {
@@ -152,6 +153,20 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 					return SetStatusMsg{Status: 3, Data: currentSecret}
 				}
 				return cmd
+			case "b":
+				selected := list.SelectedItem()
+				if selected.Type() == "current" {
+					deleted := list.DelVersionItems()
+					if !deleted {
+						versions := s.gcp.GetSecretVersions(selected.FullPath())
+						versions = versions[1:]
+						for i, version := range versions {
+							secret := view.NewSecret(strconv.Itoa(version.Version), version.FullPath, "version", version.Version)
+							secret.SetRelated(&selected)
+							list.InsertItem(list.Index()+1+i, secret)
+						}
+					}
+				}
 			case "c":
 				toast.SetText("Secret copied to clipboard")
 			case "r":
@@ -188,9 +203,15 @@ func (s *Secrets) showSecret() {
 	list := s.components["list"].(*view.SecretsList)
 	detail := s.components["detail"].(*view.SecretView)
 	selected := list.SelectedItem()
-	secretData := s.gcp.GetSecret(selected.FullPath())
-	text := ui.SyntaxHighlight(secretData)
-	detail.SetContent(text)
+	if selected.Type() == "version" {
+		versionSecret := s.gcp.GetSecretVersion(selected.FullPath(), strconv.Itoa(selected.Version()))
+		text := ui.SyntaxHighlight(versionSecret)
+		detail.SetContent(text)
+	} else {
+		secretData := s.gcp.GetSecret(selected.FullPath())
+		text := ui.SyntaxHighlight(secretData)
+		detail.SetContent(text)
+	}
 }
 
 func NewSecrets(gcp *gcp2.Gcp, selected int) *Secrets {
