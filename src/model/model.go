@@ -66,12 +66,10 @@ func (m *Model) setStatus(status int, msg any) {
 		log.Info().Msgf("msg: %v", msg)
 		if msg, ok := msg.(page.SetStatusMsg); ok && msg.From == "versions" {
 			selected = msg.Data.(page.CurrentSecret)
-			log.Info().Msgf("msg is SetStatusMsg and selected is %v", selected)
 		}
 
 		m.page = page.NewSecrets(m.gcp, selected.Index())
 		m.page.Resize(m.width, m.height)
-
 		m.status = 2
 	}
 
@@ -91,16 +89,10 @@ func (m *Model) resize() {
 }
 
 func (m *Model) View() string {
-
-	switch m.status {
-	case 1:
-		return m.page.View()
-	case 2:
-		return m.page.View()
-	case 3:
-		return m.page.View()
-	default:
+	if m.page == nil {
 		m.setStatus(1, nil)
-		return "Loading"
+		return "loading"
 	}
+
+	return m.page.View()
 }

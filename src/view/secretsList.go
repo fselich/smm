@@ -5,7 +5,6 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/rs/zerolog/log"
 	"path/filepath"
 )
 
@@ -133,7 +132,6 @@ func (sl *SecretsList) Select(index int) {
 
 func (sl *SecretsList) Update(msg tea.Msg) (SecretsList, tea.Cmd) {
 	var cmd tea.Cmd
-	log.Info().Msgf("FilterState %v", sl.teaView.FilterState())
 	sl.teaView, cmd = sl.teaView.Update(msg)
 	return *sl, cmd
 }

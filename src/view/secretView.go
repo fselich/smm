@@ -3,7 +3,6 @@ package view
 import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/rs/zerolog/log"
 )
 
 type SecretView struct {
@@ -11,7 +10,6 @@ type SecretView struct {
 }
 
 func NewSecretView(width, height int) SecretView {
-	log.Info().Msgf("Detail size: %v, %v", width, height)
 	detail := viewport.New(width, height)
 	detail.YPosition = 0
 

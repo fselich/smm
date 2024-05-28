@@ -39,6 +39,7 @@ func (s *Secrets) View() string {
 	detail := s.components["detail"].(*view.SecretView)
 	help := s.components["help"].(*view.Help)
 	toast := s.components["toast"].(*view.Toast)
+
 	listView := list.View()
 	detailView := detail.View()
 	borderColor := lipgloss.Color("#87CEFA")
@@ -95,7 +96,7 @@ func (s *Secrets) Resize(width int, height int) {
 	if list.IsFiltering() {
 		list.SetHeight(height - 12)
 	} else {
-		list.SetHeight(height - 6) // orig 6
+		list.SetHeight(height - 6)
 	}
 
 	list.SetWidth(30)
