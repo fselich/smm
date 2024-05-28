@@ -1,0 +1,217 @@
+package page
+
+import (
+	"gcs/editor"
+	gcp2 "gcs/gcp"
+	"gcs/ui"
+	"gcs/view"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/rs/zerolog/log"
+	"os"
+)
+
+type Secrets struct {
+	gcp        *gcp2.Gcp
+	components map[string]any
+}
+
+type CurrentSecret struct {
+	name  string
+	title string
+	index int
+}
+
+func (S CurrentSecret) Name() string {
+	return S.name
+}
+
+func (S CurrentSecret) Title() string {
+	return S.title
+}
+
+func (S CurrentSecret) Index() int {
+	return S.index
+}
+
+func (s *Secrets) View() string {
+	list := s.components["list"].(*view.SecretsList)
+	detail := s.components["detail"].(*view.SecretView)
+	help := s.components["help"].(*view.Help)
+	toast := s.components["toast"].(*view.Toast)
+	listView := list.View()
+	detailView := detail.View()
+	borderColor := lipgloss.Color("#87CEFA")
+
+	borderedList := lipgloss.NewStyle().
+		Border(lipgloss.NormalBorder()).
+		BorderForeground(borderColor).
+		Width(list.Width()).
+		Render(listView)
+	borderedDetail := lipgloss.NewStyle().
+		Border(lipgloss.NormalBorder()).
+		BorderForeground(borderColor).
+		Render(detailView)
+
+	borderedHelp := lipgloss.NewStyle().
+		Border(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("#C0C0C0")).
+		Width(list.Width() + detail.Width() + 2).
+		Render(help.View())
+
+	var x int
+	if list.IsFiltered() || list.IsFiltering() {
+		x = (list.Width() - len(list.FilterValue())) / 2
+		listTitle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FFFFFF")).
+			Bold(true).
+			Background(lipgloss.Color("#000000")).
+			Render(list.FilterValue())
+		borderedList = ui.PlaceOverlay(x, 0, "\""+listTitle+"\"", borderedList, false)
+	}
+
+	x = (detail.Width() - len(list.SelectedItem().Title())) / 2
+	detailTitle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#FFFFFF")).
+		Bold(true).
+		Background(lipgloss.Color("#000000")).
+		Render(list.SelectedItem().Title())
+	borderedDetail = ui.PlaceOverlay(x, 0, detailTitle, borderedDetail, false)
+
+	return lipgloss.JoinVertical(
+		lipgloss.Top,
+		lipgloss.JoinHorizontal(lipgloss.Top, borderedList, borderedDetail),
+		lipgloss.JoinHorizontal(lipgloss.Bottom, borderedHelp),
+		lipgloss.JoinHorizontal(lipgloss.Bottom, toast.View()),
+	)
+}
+
+func (s *Secrets) Resize(width int, height int) {
+	list := s.components["list"].(*view.SecretsList)
+	detail := s.components["detail"].(*view.SecretView)
+	help := s.components["help"].(*view.Help)
+	toast := s.components["toast"].(*view.Toast)
+
+	if list.IsFiltering() {
+		list.SetHeight(height - 12)
+	} else {
+		list.SetHeight(height - 6) // orig 6
+	}
+
+	list.SetWidth(30)
+	detail.SetWidth(width - 4 - list.Width())
+	detail.SetHeight(height - 6)
+	help.SetWidth(list.Width() + detail.Width() + 2)
+	toast.SetWith(width)
+}
+
+func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
+	list := s.components["list"].(*view.SecretsList)
+	detail := s.components["detail"].(*view.SecretView)
+	help := s.components["help"].(*view.Help)
+	toast := s.components["toast"].(*view.Toast)
+
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
+
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		if list.IsFiltering() == false {
+			switch msg.String() {
+			case "e":
+				f, err := os.Create("detail_content.env")
+				if err != nil {
+					log.Fatal()
+				}
+				defer f.Close()
+
+				secretName := list.SelectedItem().FullPath()
+				secretData := string(s.gcp.GetSecret(secretName))
+				_, err = f.WriteString(secretData)
+				if err != nil {
+					log.Fatal()
+				}
+
+				return editor.OpenEditor(secretData)
+			case "p":
+				cmd = func() tea.Msg {
+					return SetStatusMsg{Status: 1}
+				}
+				return cmd
+			case "ctrl+c":
+				return tea.Quit
+			case "v":
+				cmd = func() tea.Msg {
+					currentSecret := CurrentSecret{
+						name:  list.SelectedItem().FullPath(),
+						title: list.SelectedItem().Title(),
+						index: list.Index(),
+					}
+
+					return SetStatusMsg{Status: 3, Data: currentSecret}
+				}
+				return cmd
+			case "c":
+				toast.SetText("Secret copied to clipboard")
+			case "r":
+				s.Init()
+				toast.SetText("Secrets refreshed")
+			}
+		}
+	case editor.EditorFinishedMsg:
+		if msg.Err != nil {
+			return tea.Quit
+		}
+	}
+
+	*list, cmd = list.Update(msg)
+	cmds = append(cmds, cmd)
+
+	*detail, cmd = detail.Update(msg)
+	cmds = append(cmds, cmd)
+
+	*help, cmd = help.Update(msg)
+	cmds = append(cmds, cmd)
+
+	*toast, cmd = toast.Update(msg)
+	cmds = append(cmds, cmd)
+
+	if list.IsFiltering() == false {
+		s.showSecret()
+	}
+
+	return tea.Batch(cmds...)
+}
+
+func (s *Secrets) showSecret() {
+	list := s.components["list"].(*view.SecretsList)
+	detail := s.components["detail"].(*view.SecretView)
+	selected := list.SelectedItem()
+	secretData := s.gcp.GetSecret(selected.FullPath())
+	text := ui.SyntaxHighlight(secretData)
+	detail.SetContent(text)
+}
+
+func NewSecrets(gcp *gcp2.Gcp, selected int) *Secrets {
+	page := &Secrets{gcp: gcp}
+	page.Init()
+	page.Select(selected)
+	return page
+}
+
+func (s *Secrets) Init() {
+	secretList := view.NewSecretsList(50, 50, s.gcp)
+	secretView := view.NewSecretView(50, 50)
+	help := view.NewHelp()
+	toast := view.NewToast()
+	s.components = make(map[string]any)
+	s.components["list"] = &secretList
+	s.components["detail"] = &secretView
+	s.components["help"] = &help
+	s.components["toast"] = &toast
+	s.showSecret()
+}
+
+func (s *Secrets) Select(index int) {
+	s.components["list"].(*view.SecretsList).Select(index)
+}
