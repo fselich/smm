@@ -30,6 +30,13 @@ func StyleBorder() lipgloss.Style {
 		BorderForeground(lipgloss.Color("#87CEFA"))
 }
 
+func StyleModal() lipgloss.Style {
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#FFFFFF")).
+		Border(lipgloss.DoubleBorder()).
+		BorderForeground(lipgloss.Color("#87CEFA"))
+}
+
 func StyleLowBorder() lipgloss.Style {
 	return lipgloss.NewStyle().
 		Border(lipgloss.NormalBorder()).
