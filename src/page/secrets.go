@@ -43,41 +43,26 @@ func (s *Secrets) View() string {
 
 	listView := list.View()
 	detailView := detail.View()
-	borderColor := lipgloss.Color("#87CEFA")
 
-	borderedList := lipgloss.NewStyle().
-		Border(lipgloss.NormalBorder()).
-		BorderForeground(borderColor).
+	borderedList := ui.StyleBorder().
 		Width(list.Width()).
 		Render(listView)
-	borderedDetail := lipgloss.NewStyle().
-		Border(lipgloss.NormalBorder()).
-		BorderForeground(borderColor).
+	borderedDetail := ui.StyleBorder().
 		Render(detailView)
 
-	borderedHelp := lipgloss.NewStyle().
-		Border(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("#C0C0C0")).
+	borderedHelp := ui.StyleLowBorder().
 		Width(list.Width() + detail.Width() + 2).
 		Render(help.View())
 
 	var x int
 	if list.IsFiltered() || list.IsFiltering() {
 		x = (list.Width() - len(list.FilterValue())) / 2
-		listTitle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFFFFF")).
-			Bold(true).
-			Background(lipgloss.Color("#000000")).
-			Render(list.FilterValue())
+		listTitle := ui.StyleBorderTitle().Render(list.FilterValue())
 		borderedList = ui.PlaceOverlay(x, 0, "\""+listTitle+"\"", borderedList, false)
 	}
 
 	x = (detail.Width() - len(list.SelectedItem().Title())) / 2
-	detailTitle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FFFFFF")).
-		Bold(true).
-		Background(lipgloss.Color("#000000")).
-		Render(list.SelectedItem().Title())
+	detailTitle := ui.StyleBorderTitle().Render(list.SelectedItem().Title())
 	borderedDetail = ui.PlaceOverlay(x, 0, detailTitle, borderedDetail, false)
 
 	return lipgloss.JoinVertical(
