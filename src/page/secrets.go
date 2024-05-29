@@ -1,6 +1,7 @@
 package page
 
 import (
+	"fmt"
 	"gcs/editor"
 	gcp2 "gcs/gcp"
 	"gcs/ui"
@@ -15,6 +16,7 @@ import (
 type Secrets struct {
 	gcp        *gcp2.Gcp
 	components map[string]any
+	Modal      bool
 }
 
 type CurrentSecret struct {
@@ -65,12 +67,18 @@ func (s *Secrets) View() string {
 	detailTitle := ui.StyleBorderTitle().Render(list.SelectedItem().Title())
 	borderedDetail = ui.PlaceOverlay(x, 0, detailTitle, borderedDetail, false)
 
-	return lipgloss.JoinVertical(
+	render := lipgloss.JoinVertical(
 		lipgloss.Top,
 		lipgloss.JoinHorizontal(lipgloss.Top, borderedList, borderedDetail),
 		lipgloss.JoinHorizontal(lipgloss.Bottom, borderedHelp),
 		lipgloss.JoinHorizontal(lipgloss.Bottom, toast.View()),
 	)
+
+	if s.Modal == true {
+		render = ui.ModalOverlay("I'm a modal, dude\nOk?", render)
+	}
+
+	return render
 }
 
 func (s *Secrets) Resize(width int, height int) {
@@ -127,7 +135,17 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 				return cmd
 			case "ctrl+c":
 				return tea.Quit
-			case "v":
+			case "n":
+				err := s.gcp.AddSecretVersion(list.SelectedItem().Title(), []byte("prueba2"))
+				if err != nil {
+					log.Error().Msgf("Error creating new secret version: %v", err)
+				}
+			case "ctrl+n":
+				log.Info().Msg("New secret version")
+
+			case "y":
+				s.Modal = !s.Modal
+			case "b":
 				cmd = func() tea.Msg {
 					currentSecret := CurrentSecret{
 						name:  list.SelectedItem().FullPath(),
@@ -138,13 +156,14 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 					return SetStatusMsg{Status: 3, Data: currentSecret}
 				}
 				return cmd
-			case "b":
+			case "v":
 				selected := list.SelectedItem()
 				if selected.Type() == "current" {
 					deleted := list.DelVersionItems()
 					if !deleted {
 						versions := s.gcp.GetSecretVersions(selected.FullPath())
 						versions = versions[1:]
+						toast.SetText(fmt.Sprintf("Secret has %v versions", len(versions)))
 						for i, version := range versions {
 							secret := view.NewSecret(strconv.Itoa(version.Version), version.FullPath, "version", version.Version)
 							secret.SetRelated(&selected)
@@ -152,6 +171,8 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 						}
 					}
 				}
+				list.Select(selected.Index())
+				return nil
 			case "c":
 				toast.SetText("Secret copied to clipboard")
 			case "r":
@@ -203,6 +224,7 @@ func NewSecrets(gcp *gcp2.Gcp, selected int) *Secrets {
 	page := &Secrets{gcp: gcp}
 	page.Init()
 	page.Select(selected)
+	page.Modal = false
 	return page
 }
 

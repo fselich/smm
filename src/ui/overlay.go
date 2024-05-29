@@ -2,10 +2,11 @@ package ui
 
 import (
 	"bytes"
+	runewidth "github.com/mattn/go-runewidth"
 	"strings"
 
+	"github.com/acarl005/stripansi"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/mattn/go-runewidth"
 	"github.com/muesli/ansi"
 	"github.com/muesli/reflow/truncate"
 	"github.com/muesli/termenv"
@@ -29,6 +30,26 @@ func getLines(s string) (lines []string, widest int) {
 	}
 
 	return lines, widest
+}
+
+func ModalOverlay(fg, bg string) string {
+	fg = StyleModal().Padding(1, 1, 1, 1).Render(fg)
+	bg = StyleLow().Render(stripansi.Strip(bg))
+
+	fgLines, fgWidth := getLines(fg)
+	bgLines, bgWidth := getLines(bg)
+	bgHeight := len(bgLines)
+	fgHeight := len(fgLines)
+
+	if fgWidth >= bgWidth && fgHeight >= bgHeight {
+		return fg
+	}
+
+	x := (bgWidth - fgWidth) / 2
+	y := (bgHeight - fgHeight) / 2
+
+	return PlaceOverlay(x, y, fg, bg, false)
+
 }
 
 // PlaceOverlay places fg on top of bg.

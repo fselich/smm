@@ -62,7 +62,7 @@ func (t Secret) SetRelated(secret *Secret) {
 	t.related = secret
 }
 
-func (t Secret) SetIndex(index int) {
+func (t *Secret) SetIndex(index int) {
 	t.index = index
 }
 
@@ -148,6 +148,16 @@ func (sl *SecretsList) SetHeight(height int) {
 
 func (sl *SecretsList) Select(index int) {
 	sl.teaView.Select(index)
+}
+
+func (sl *SecretsList) SelectByName(name string) {
+	sl.teaView.ResetSelected()
+	for i, item := range sl.teaView.Items() {
+		if item.(Secret).Title() == name {
+			sl.teaView.Select(i)
+			break
+		}
+	}
 }
 
 func (sl *SecretsList) Update(msg tea.Msg) (SecretsList, tea.Cmd) {

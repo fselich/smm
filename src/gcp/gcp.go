@@ -118,7 +118,6 @@ func (g *Gcp) GetSecret(secretName string) []byte {
 		log.Fatal().Msgf("failed to access secret version: %v", err)
 	}
 
-	log.Info().Msgf("Fetched secret: %s", secretName)
 	return result.Payload.Data
 }
 
@@ -142,4 +141,28 @@ func (g *Gcp) GetSecretVersion(secretName, version string) []byte {
 	}
 
 	return result.Payload.Data
+}
+
+func (g *Gcp) AddSecretVersion(secretName string, payload []byte) error {
+	log.Info().Msgf("[FAKE] Adding secret version: %s", secretName)
+	return nil
+	//parent := fmt.Sprintf("projects/%s/secrets/%s", g.projectID, secretName)
+	//
+	//crc32c := crc32.MakeTable(crc32.Castagnoli)
+	//checksum := int64(crc32.Checksum(payload, crc32c))
+	//
+	//req := &secretmanagerpb.AddSecretVersionRequest{
+	//	Parent: parent,
+	//	Payload: &secretmanagerpb.SecretPayload{
+	//		Data:       payload,
+	//		DataCrc32C: &checksum,
+	//	},
+	//}
+	//
+	//result, err := g.client.AddSecretVersion(g.ctx, req)
+	//if err != nil {
+	//	return fmt.Errorf("failed to add secret version: %w", err)
+	//}
+	//log.Info().Msgf("Added secret version: %s\n", result.Name)
+	//return nil
 }
