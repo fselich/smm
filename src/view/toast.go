@@ -1,8 +1,8 @@
 package view
 
 import (
+	"gcs/ui"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"time"
 )
 
@@ -47,8 +47,5 @@ func (m *Toast) View() string {
 	if time.Since(m.timer) > 3*time.Second {
 		m.text = ""
 	}
-	return lipgloss.NewStyle().
-		Width(m.width).
-		Foreground(lipgloss.Color("#FFFF00")).
-		Align(lipgloss.Center).Render(m.text)
+	return ui.StyleToast().Width(m.width).Render(m.text)
 }

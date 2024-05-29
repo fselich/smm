@@ -48,20 +48,14 @@ func (v *Versions) View() string {
 	toast := v.components["toast"].(*view.Toast)
 	listView := list.View()
 	detailView := detail.View()
-	borderColor := lipgloss.Color("#87CEFA")
-	borderedList := lipgloss.NewStyle().
-		Border(lipgloss.NormalBorder()).
-		BorderForeground(borderColor).
+
+	borderedList := ui.StyleBorder().
 		Width(list.Width()).
 		Render(listView)
-	borderedDetail := lipgloss.NewStyle().
-		Border(lipgloss.NormalBorder()).
-		BorderForeground(borderColor).
+	borderedDetail := ui.StyleBorder().
 		Render(detailView)
 
-	borderedHelp := lipgloss.NewStyle().
-		Border(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("#C0C0C0")).
+	borderedHelp := ui.StyleLowBorder().
 		Width(list.Width() + detail.Width() + 2).
 		Render(help.View())
 

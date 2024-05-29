@@ -2,9 +2,9 @@ package view
 
 import (
 	gcp2 "gcs/gcp"
+	"gcs/ui"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"path/filepath"
 	"sort"
 )
@@ -29,7 +29,7 @@ func (t Secret) FilterValue() string {
 
 func (t Secret) Title() string {
 	if t.secretType == "version" {
-		return "├─" + t.title
+		return ui.StyleLow().Render("├──") + t.title
 	}
 	return t.title
 }
@@ -75,18 +75,15 @@ func NewSecretsList(width, height int, gcp *gcp2.Gcp) SecretsList {
 	d.ShowDescription = false
 	d.SetSpacing(0)
 
-	d.Styles.SelectedTitle = d.Styles.SelectedTitle.
-		Foreground(lipgloss.Color("#000000")).
-		BorderLeftForeground(lipgloss.Color("#87CEFA")).
-		Background(lipgloss.Color("#87CEFA"))
-	d.Styles.NormalTitle = d.Styles.NormalTitle.
-		Foreground(lipgloss.Color("#87CEFA"))
+	d.Styles.SelectedTitle = ui.StyleSelected()
+	d.Styles.NormalTitle = ui.StyleUnselected()
 
 	myList := list.New([]list.Item{}, d, width, height)
 	myList.SetShowHelp(false)
 	myList.SetShowTitle(false)
 	myList.SetShowStatusBar(false)
 	myList.SetShowFilter(false)
+	myList.SetShowPagination(true)
 	myList.StopSpinner()
 
 	gcpSecrets := gcp.Secrets()
