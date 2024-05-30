@@ -16,7 +16,7 @@ import (
 type Secrets struct {
 	gcp        *gcp2.Gcp
 	components map[string]any
-	Modal      bool
+	Modal      *view.Confirm
 }
 
 type CurrentSecret struct {
@@ -74,8 +74,8 @@ func (s *Secrets) View() string {
 		lipgloss.JoinHorizontal(lipgloss.Bottom, toast.View()),
 	)
 
-	if s.Modal == true {
-		render = ui.ModalOverlay("I'm a modal, dude\nOk?", render)
+	if s.Modal != nil {
+		render = ui.ModalOverlay(s.Modal.View(), render)
 	}
 
 	return render
@@ -109,81 +109,92 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		if list.IsFiltering() == false {
-			switch msg.String() {
-			case "e":
-				f, err := os.Create("detail_content.env")
-				if err != nil {
-					log.Fatal()
-				}
-				defer f.Close()
+	if s.Modal == nil {
+		switch msg := msg.(type) {
+		case tea.KeyMsg:
+			if list.IsFiltering() == false {
+				switch msg.String() {
+				case "e":
+					f, err := os.Create("detail_content.env")
+					if err != nil {
+						log.Fatal()
+					}
+					defer f.Close()
 
-				secretName := list.SelectedItem().FullPath()
-				secretData := string(s.gcp.GetSecret(secretName))
-				_, err = f.WriteString(secretData)
-				if err != nil {
-					log.Fatal()
-				}
-
-				return editor.OpenEditor(secretData)
-			case "p":
-				cmd = func() tea.Msg {
-					return SetStatusMsg{Status: 1}
-				}
-				return cmd
-			case "ctrl+c":
-				return tea.Quit
-			case "n":
-				err := s.gcp.AddSecretVersion(list.SelectedItem().Title(), []byte("prueba2"))
-				if err != nil {
-					log.Error().Msgf("Error creating new secret version: %v", err)
-				}
-			case "ctrl+n":
-				log.Info().Msg("New secret version")
-
-			case "y":
-				s.Modal = !s.Modal
-			case "b":
-				cmd = func() tea.Msg {
-					currentSecret := CurrentSecret{
-						name:  list.SelectedItem().FullPath(),
-						title: list.SelectedItem().Title(),
-						index: list.Index(),
+					secretName := list.SelectedItem().FullPath()
+					secretData := string(s.gcp.GetSecret(secretName))
+					_, err = f.WriteString(secretData)
+					if err != nil {
+						log.Fatal()
 					}
 
-					return SetStatusMsg{Status: 3, Data: currentSecret}
-				}
-				return cmd
-			case "v":
-				selected := list.SelectedItem()
-				if selected.Type() == "current" {
-					deleted := list.DelVersionItems()
-					if !deleted {
-						versions := s.gcp.GetSecretVersions(selected.FullPath())
-						versions = versions[1:]
-						toast.SetText(fmt.Sprintf("Secret has %v versions", len(versions)))
-						for i, version := range versions {
-							secret := view.NewSecret(strconv.Itoa(version.Version), version.FullPath, "version", version.Version)
-							secret.SetRelated(&selected)
-							list.InsertItem(list.Index()+1+i, secret)
+					return editor.OpenEditor(secretData)
+				case "p":
+					cmd = func() tea.Msg {
+						return SetStatusMsg{Status: 1}
+					}
+					return cmd
+				case "ctrl+c":
+					return tea.Quit
+				case "n":
+					err := s.gcp.AddSecretVersion(list.SelectedItem().Title(), []byte("prueba2"))
+					if err != nil {
+						log.Error().Msgf("Error creating new secret version: %v", err)
+					}
+				case "ctrl+n":
+					log.Info().Msg("New secret version")
+
+				case "y":
+					if s.Modal == nil {
+						s.Modal = view.NewConfirm("I'm a modal, dude\nOk?", "hola")
+						s.Modal.Init()
+					} else {
+						s.Modal = nil
+					}
+				case "b":
+					cmd = func() tea.Msg {
+						currentSecret := CurrentSecret{
+							name:  list.SelectedItem().FullPath(),
+							title: list.SelectedItem().Title(),
+							index: list.Index(),
+						}
+
+						return SetStatusMsg{Status: 3, Data: currentSecret}
+					}
+					return cmd
+				case "v":
+					selected := list.SelectedItem()
+					if selected.Type() == "current" {
+						deleted := list.DelVersionItems()
+						if !deleted {
+							versions := s.gcp.GetSecretVersions(selected.FullPath())
+							versions = versions[1:]
+							toast.SetText(fmt.Sprintf("Secret has %v versions", len(versions)))
+							for i, version := range versions {
+								secret := view.NewSecret(strconv.Itoa(version.Version), version.FullPath, "version", version.Version)
+								secret.SetRelated(&selected)
+								list.InsertItem(list.Index()+1+i, secret)
+							}
 						}
 					}
+					list.Select(selected.Index())
+					return nil
+				case "c":
+					toast.SetText("Secret copied to clipboard")
+				case "r":
+					s.Init()
+					toast.SetText("Secrets refreshed")
 				}
-				list.Select(selected.Index())
-				return nil
-			case "c":
-				toast.SetText("Secret copied to clipboard")
-			case "r":
-				s.Init()
-				toast.SetText("Secrets refreshed")
+			}
+		case editor.EditorFinishedMsg:
+			if msg.Err != nil {
+				return tea.Quit
 			}
 		}
-	case editor.EditorFinishedMsg:
-		if msg.Err != nil {
-			return tea.Quit
-		}
+	} else {
+		modal, cmd := s.Modal.Update(msg)
+		s.Modal = modal
+		return cmd
 	}
 
 	*list, cmd = list.Update(msg)
@@ -224,7 +235,6 @@ func NewSecrets(gcp *gcp2.Gcp, selected int) *Secrets {
 	page := &Secrets{gcp: gcp}
 	page.Init()
 	page.Select(selected)
-	page.Modal = false
 	return page
 }
 
