@@ -173,12 +173,12 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 							for i, version := range versions {
 								secret := view.NewSecret(strconv.Itoa(version.Version), version.FullPath, "version", version.Version)
 								secret.SetRelated(&selected)
-								list.InsertItem(list.Index()+1+i, secret)
+								cmd = list.InsertItem(list.RealIndex()+1+i, secret)
 							}
 						}
 					}
 					list.Select(selected.Index())
-					return nil
+					return cmd
 				case "c":
 					toast.SetText("Secret copied to clipboard")
 				case "r":
