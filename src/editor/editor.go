@@ -1,6 +1,7 @@
 package editor
 
 import (
+	"gcs/view"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/rs/zerolog/log"
 	"os"
@@ -9,7 +10,7 @@ import (
 
 type EditorFinishedMsg struct{ Err error }
 
-func OpenEditor(secretData string) tea.Cmd {
+func OpenEditor(secretData string, currentSecret view.Secret) tea.Cmd {
 	editor := os.Getenv("EDITOR")
 	if editor == "" {
 		editor = "vim"

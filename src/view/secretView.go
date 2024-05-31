@@ -7,10 +7,12 @@ import (
 
 type SecretView struct {
 	teaView viewport.Model
+	Secret  *Secret
 }
 
 func NewSecretView(width, height int) SecretView {
 	detail := viewport.New(width, height)
+	detail.HighPerformanceRendering = false
 	detail.YPosition = 0
 
 	return SecretView{teaView: detail}
