@@ -128,7 +128,7 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 						log.Fatal()
 					}
 
-					return editor.OpenEditor(secretData)
+					return editor.OpenEditor(secretData, list.SelectedItem())
 				case "p":
 					cmd = func() tea.Msg {
 						return SetStatusMsg{Status: 1}
@@ -146,7 +146,7 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 
 				case "y":
 					if s.Modal == nil {
-						s.Modal = view.NewConfirm("I'm a modal, dude\nOk?", "hola")
+						s.Modal = view.NewConfirm("Do you want to create a new secret based on this?", "hola")
 						s.Modal.Init()
 					} else {
 						s.Modal = nil
@@ -187,9 +187,14 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 				}
 			}
 		case editor.EditorFinishedMsg:
+			toast.SetText("Saved")
 			if msg.Err != nil {
 				return tea.Quit
 			}
+			return nil
+		case SecretLoadedMsg:
+			detail.SetContent(msg.Text)
+			return nil
 		}
 	} else {
 		modal, cmd := s.Modal.Update(msg)
@@ -197,38 +202,52 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 		return cmd
 	}
 
-	*list, cmd = list.Update(msg)
+	_, cmd = list.Update(msg)
 	cmds = append(cmds, cmd)
 
-	*detail, cmd = detail.Update(msg)
+	_, cmd = detail.Update(msg)
 	cmds = append(cmds, cmd)
 
-	*help, cmd = help.Update(msg)
+	_, cmd = help.Update(msg)
 	cmds = append(cmds, cmd)
 
-	*toast, cmd = toast.Update(msg)
+	_, cmd = toast.Update(msg)
 	cmds = append(cmds, cmd)
 
 	if list.IsFiltering() == false {
-		s.showSecret()
+		cmd = s.showSecret()
+		cmds = append(cmds, cmd)
 	}
 
 	return tea.Batch(cmds...)
 }
 
-func (s *Secrets) showSecret() {
+type SecretLoadedMsg struct {
+	Secret view.Secret
+	Text   string
+}
+
+func (s *Secrets) showSecret() tea.Cmd {
 	list := s.components["list"].(*view.SecretsList)
-	detail := s.components["detail"].(*view.SecretView)
 	selected := list.SelectedItem()
-	if selected.Type() == "version" {
-		versionSecret := s.gcp.GetSecretVersion(selected.FullPath(), strconv.Itoa(selected.Version()))
-		text := ui.SyntaxHighlight(versionSecret)
-		detail.SetContent(text)
-	} else {
-		secretData := s.gcp.GetSecret(selected.FullPath())
-		text := ui.SyntaxHighlight(secretData)
-		detail.SetContent(text)
+
+	return func() tea.Msg {
+		var text string
+		text = "loading"
+		if selected.Type() == "version" {
+			versionSecret := s.gcp.GetSecretVersion(selected.FullPath(), strconv.Itoa(selected.Version()))
+			text = ui.SyntaxHighlight(versionSecret)
+		} else {
+
+			secretData := s.gcp.GetSecret(selected.FullPath())
+			text = ui.SyntaxHighlight(secretData)
+		}
+		return SecretLoadedMsg{
+			Secret: selected,
+			Text:   text,
+		}
 	}
+
 }
 
 func NewSecrets(gcp *gcp2.Gcp, selected int) *Secrets {

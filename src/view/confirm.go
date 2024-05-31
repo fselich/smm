@@ -12,7 +12,7 @@ type Confirm struct {
 }
 
 func NewConfirm(question string, message any) *Confirm {
-	confirm := confirmation.New("Are you ready?", confirmation.Yes)
+	confirm := confirmation.New(question, confirmation.Yes)
 	confirm.Template = confirmation.TemplateArrow
 	confirm.ResultTemplate = confirmation.ResultTemplateArrow
 
