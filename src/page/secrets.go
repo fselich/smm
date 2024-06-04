@@ -151,7 +151,9 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 					} else {
 						s.Modal = nil
 					}
-				case "b":
+				case "h":
+					detail.Hidden = !detail.Hidden
+				case "l":
 					cmd = func() tea.Msg {
 						currentSecret := CurrentSecret{
 							name:  list.SelectedItem().FullPath(),
@@ -229,6 +231,13 @@ type SecretLoadedMsg struct {
 
 func (s *Secrets) showSecret() tea.Cmd {
 	list := s.components["list"].(*view.SecretsList)
+	detail := s.components["detail"].(*view.SecretView)
+
+	if detail.Hidden {
+		detail.SetContent("")
+		return nil
+	}
+
 	selected := list.SelectedItem()
 
 	return func() tea.Msg {
