@@ -4,7 +4,6 @@ import (
 	"gcs/gcp"
 	"gcs/page"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/rs/zerolog/log"
 )
 
 type Model struct {
@@ -63,7 +62,6 @@ func (m *Model) setStatus(status int, msg any) {
 	}
 	if m.status != 2 && status == 2 {
 		var selected page.CurrentSecret
-		log.Info().Msgf("msg: %v", msg)
 		if msg, ok := msg.(page.SetStatusMsg); ok && msg.From == "versions" {
 			selected = msg.Data.(page.CurrentSecret)
 		}
