@@ -85,8 +85,11 @@ func NewSecretsList(width, height int, gcp *gcp2.Gcp) SecretsList {
 	myList.Filter = list.UnsortedFilter
 
 	var secretList []list.Item
-	for _, secret := range gcp.Secrets() {
-		secretList = append(secretList, NewSecret(filepath.Base(secret), secret, "current", 0))
+
+	if gcp != nil {
+		for _, secret := range gcp.Secrets() {
+			secretList = append(secretList, NewSecret(filepath.Base(secret), secret, "current", 0))
+		}
 	}
 
 	myList.SetItems(secretList)

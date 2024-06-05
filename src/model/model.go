@@ -3,6 +3,7 @@ package model
 import (
 	"gcs/gcp"
 	"gcs/page"
+	"gcs/view"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -16,7 +17,7 @@ type Model struct {
 }
 
 func New() *Model {
-	return &Model{status: 0}
+	return &Model{status: 1}
 }
 
 func (m *Model) Init() tea.Cmd {
@@ -27,19 +28,18 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
-	case page.ProjectSelectedMsg:
+	case view.ProjectSelectedMessage:
 		var err error
 		m.gcp, err = gcp.NewGcp(msg.ProjectId)
 		if err != nil {
 			return m, nil
 		}
-		m.setStatus(2, msg)
+		m.setStatus(2, nil)
 		return m, nil
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
 		m.resize()
-		m.page.Resize(msg.Width, msg.Height)
 		return m, nil
 	case page.SetStatusMsg:
 		m.setStatus(msg.Status, msg)
@@ -54,42 +54,34 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+type ShowProjectSelectMsg struct {
+}
+
 func (m *Model) setStatus(status int, msg any) {
-	if m.status != 1 && status == 1 {
-		m.page = page.NewSelectProject()
-		m.page.Resize(m.width, m.height)
-		m.status = 1
-	}
-	if m.status != 2 && status == 2 {
+	if status == 2 {
 		var selected page.CurrentSecret
-		if msg, ok := msg.(page.SetStatusMsg); ok && msg.From == "versions" {
-			selected = msg.Data.(page.CurrentSecret)
-		}
 
 		m.page = page.NewSecrets(m.gcp, selected.Index())
 		m.page.Resize(m.width, m.height)
+		if _, ok := msg.(ShowProjectSelectMsg); ok {
+			m.page.Update(tea.KeyMsg{Runes: []rune("p"), Type: tea.KeyRunes})
+		}
 		m.status = 2
-	}
-
-	if m.status != 3 && status == 3 {
-		currentSecret := msg.(page.SetStatusMsg).Data.(page.CurrentSecret)
-		m.page = page.NewVersions(currentSecret, m.gcp)
-		m.status = 3
 	}
 
 	m.resize()
 }
 
 func (m *Model) resize() {
-	if m.width > 0 && m.height > 0 {
+	if m.page != nil && m.width > 0 && m.height > 0 {
 		m.page.Resize(m.width, m.height)
 	}
 }
 
 func (m *Model) View() string {
 	if m.page == nil {
-		m.setStatus(1, nil)
-		return "loading"
+		m.setStatus(2, ShowProjectSelectMsg{})
+		m.View()
 	}
 
 	return m.page.View()

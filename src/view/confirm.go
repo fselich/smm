@@ -5,6 +5,12 @@ import (
 	"github.com/erikgeiser/promptkit/confirmation"
 )
 
+type Modal interface {
+	View() string
+	Init() tea.Cmd
+	Update(msg tea.Msg) (Modal, tea.Cmd)
+}
+
 type Confirm struct {
 	question     string
 	message      any
@@ -28,7 +34,7 @@ func (c *Confirm) Init() tea.Cmd {
 	return c.confirmation.Init()
 }
 
-func (c *Confirm) Update(msg tea.Msg) (*Confirm, tea.Cmd) {
+func (c *Confirm) Update(msg tea.Msg) (Modal, tea.Cmd) {
 	_, cmd := c.confirmation.Update(msg)
 	return c, cmd
 }
