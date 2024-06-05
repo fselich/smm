@@ -84,6 +84,7 @@ func NewSecretsList(width, height int, gcp *gcp2.Gcp) SecretsList {
 	myList.SetShowFilter(false)
 	myList.SetShowPagination(true)
 	myList.StopSpinner()
+	myList.DisableQuitKeybindings()
 	myList.Filter = list.UnsortedFilter
 
 	var secretList []list.Item
