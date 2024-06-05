@@ -44,6 +44,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case page.SetStatusMsg:
 		m.setStatus(msg.Status, msg)
 		return m, nil
+	case view.ResizeMessage:
+		m.resize()
 	}
 
 	if m.page != nil {
