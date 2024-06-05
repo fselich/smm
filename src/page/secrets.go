@@ -13,10 +13,23 @@ import (
 	"strconv"
 )
 
+type Page interface {
+	Init()
+	View() string
+	Resize(int, int)
+	Update(cmd tea.Msg) tea.Cmd
+}
+
+type SetStatusMsg struct {
+	Status int
+	From   string
+	Data   any
+}
+
 type Secrets struct {
 	gcp        *gcp2.Gcp
 	components map[string]any
-	Modal      *view.Confirm
+	Modal      view.Modal
 }
 
 type CurrentSecret struct {
@@ -57,10 +70,14 @@ func (s *Secrets) View() string {
 		Render(help.View())
 
 	var x int
-	if list.IsFiltered() || list.IsFiltering() {
+	if list.IsFiltering() {
+		x = ((list.Width() - len(list.FilterValue())) / 2) - 1
+		listTitle := ui.StyleBorderTitle().Render(list.FilterValue())
+		borderedList = ui.PlaceOverlay(x, 0, "\""+listTitle+"█\"", borderedList, false)
+	} else if list.IsFiltered() {
 		x = (list.Width() - len(list.FilterValue())) / 2
 		listTitle := ui.StyleBorderTitle().Render(list.FilterValue())
-		borderedList = ui.PlaceOverlay(x, 0, "\""+listTitle+"\"", borderedList, false)
+		borderedList = ui.PlaceOverlay(x, 0, listTitle, borderedList, false)
 	}
 
 	x = (detail.Width() - len(list.SelectedItem().Title())) / 2
@@ -109,6 +126,13 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
+	switch msg := msg.(type) {
+	case view.ProjectSelectedMessage:
+		log.Info().Msgf("Project selected: %v", msg.ProjectId)
+		s.Modal = nil
+		return nil
+	}
+
 	if s.Modal == nil {
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
@@ -130,10 +154,8 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 
 					return editor.OpenEditor(secretData, list.SelectedItem())
 				case "p":
-					cmd = func() tea.Msg {
-						return SetStatusMsg{Status: 1}
-					}
-					return cmd
+					s.Modal = view.NewProjectSelectorModal()
+					s.Modal.Init()
 				case "ctrl+c":
 					return tea.Quit
 				case "n":
@@ -153,17 +175,6 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 					}
 				case "h":
 					detail.Hidden = !detail.Hidden
-				case "l":
-					cmd = func() tea.Msg {
-						currentSecret := CurrentSecret{
-							name:  list.SelectedItem().FullPath(),
-							title: list.SelectedItem().Title(),
-							index: list.Index(),
-						}
-
-						return SetStatusMsg{Status: 3, Data: currentSecret}
-					}
-					return cmd
 				case "v":
 					selected := list.SelectedItem()
 					if selected.Type() == "current" {
