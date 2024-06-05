@@ -19,6 +19,8 @@ type Secret struct {
 	related     *Secret
 }
 
+type ResizeMessage struct{}
+
 func NewSecret(title, fullPath, secretType string, version int) Secret {
 	return Secret{title: title, fullPath: fullPath, description: "test", secretType: secretType, version: version}
 }
@@ -172,8 +174,22 @@ func (sl *SecretsList) SelectByName(name string) {
 
 func (sl *SecretsList) Update(msg tea.Msg) (SecretsList, tea.Cmd) {
 	var cmd tea.Cmd
+	var cmds []tea.Cmd
 	sl.teaView, cmd = sl.teaView.Update(msg)
-	return *sl, cmd
+	cmds = append(cmds, cmd)
+
+	//Fix for resizing after filtering
+	if msg, ok := msg.(tea.KeyMsg); ok {
+		switch msg.String() {
+		case "esc":
+			resizeCmd := func() tea.Msg {
+				return ResizeMessage{}
+			}
+			cmds = append(cmds, resizeCmd)
+		}
+	}
+
+	return *sl, tea.Batch(cmds...)
 }
 
 func (sl *SecretsList) InsertItem(index int, item Secret) tea.Cmd {
