@@ -196,6 +196,10 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 					toast.SetText("Secret copied to clipboard")
 				case "r":
 					s.Init()
+					resizeCmd := func() tea.Msg {
+						return view.ResizeMessage{}
+					}
+					cmds = append(cmds, resizeCmd)
 					toast.SetText("Secrets refreshed")
 				}
 			}
