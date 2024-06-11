@@ -3,6 +3,7 @@ package view
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/erikgeiser/promptkit/confirmation"
+	"github.com/rs/zerolog/log"
 )
 
 type Modal interface {
@@ -15,6 +16,11 @@ type Confirm struct {
 	question     string
 	message      any
 	confirmation *confirmation.Model
+}
+
+type ConfirmationResultMessage struct {
+	Result bool
+	Msg    any
 }
 
 func NewConfirm(question string, message any) *Confirm {
@@ -35,6 +41,19 @@ func (c *Confirm) Init() tea.Cmd {
 }
 
 func (c *Confirm) Update(msg tea.Msg) (Modal, tea.Cmd) {
-	_, cmd := c.confirmation.Update(msg)
-	return c, cmd
+	m, cmd := c.confirmation.Update(msg)
+
+	if cmd != nil {
+		message := cmd()
+		switch message.(type) {
+		case tea.QuitMsg:
+			result, _ := m.(*confirmation.Model).Value()
+			log.Info().Msgf("Confirmation result: %v", result)
+			cmd := func() tea.Msg {
+				return ConfirmationResultMessage{result, c.message}
+			}
+			return c, cmd
+		}
+	}
+	return c, nil
 }

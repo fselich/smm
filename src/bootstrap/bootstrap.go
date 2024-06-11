@@ -1,38 +1,39 @@
 package bootstrap
 
 import (
-	"fmt"
-	"github.com/joho/godotenv"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 	"os"
-	"path"
+	"path/filepath"
 )
 
-func LoadEnv() {
-	envFiles := []string{
-		".env",
-		fmt.Sprintf(".env.%s", os.Getenv("RUN_ENV")),
-		".env.local",
-	}
+func LoadConfig() {
+	configPath := filepath.Join(os.Getenv("HOME"), ".config", "gcs")
+	configFile := filepath.Join(configPath, "config.yaml")
 
-	envLoaded := false
-	for _, envFile := range envFiles {
-		if err := godotenv.Overload(ConfigPath(envFile)); err != nil {
-			log.Debug().Err(err).Msg(fmt.Sprintf("Error loading %s file", envFile))
-		} else {
-			log.Info().Msg(fmt.Sprintf("Loaded %s file", ConfigPath(envFile)))
-			envLoaded = true
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		err = os.MkdirAll(configPath, 0755)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Error creating config directory")
 		}
 	}
 
-	if !envLoaded {
-		log.Fatal().Msg("No env file loaded")
-	}
-}
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(configPath)
+	viper.SetDefault("projectIds", []string{"***REMOVED***", "otra cosa"})
 
-func ConfigPath(file string) string {
-	filename, _ := os.Executable()
-	return path.Join(path.Dir(filename), "/config", file)
+	if _, err := os.Stat(configFile); os.IsNotExist(err) {
+		err = viper.WriteConfigAs(configFile)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Error writing config file")
+		}
+	} else {
+		err = viper.ReadInConfig()
+		if err != nil {
+			log.Fatal().Err(err).Msg("Error reading config file")
+		}
+	}
 }
 
 func SetLog() {

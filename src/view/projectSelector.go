@@ -3,6 +3,8 @@ package view
 import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/spf13/viper"
 )
 
 type ProjectSelectedMessage struct {
@@ -16,6 +18,8 @@ type ProjectSelector struct {
 func NewProjectSelectorModal() *ProjectSelector {
 	projectId := textinput.New()
 	projectId.Prompt = "Project ID: "
+	projectId.ShowSuggestions = true
+	projectId.SetSuggestions(viper.GetStringSlice("projectids"))
 	projectId.Placeholder = ""
 	projectId.Focus()
 	projectId.CharLimit = 128
@@ -52,5 +56,5 @@ func (p *ProjectSelector) Update(msg tea.Msg) (Modal, tea.Cmd) {
 }
 
 func (p *ProjectSelector) View() string {
-	return p.teaView.View()
+	return lipgloss.NewStyle().Width(34).Height(1).Render(p.teaView.View())
 }
