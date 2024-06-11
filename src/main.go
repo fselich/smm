@@ -8,6 +8,7 @@ import (
 
 func init() {
 	bootstrap.SetLog()
+	bootstrap.LoadConfig()
 }
 
 func main() {
