@@ -131,6 +131,19 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 		log.Info().Msgf("Project selected: %v", msg.ProjectId)
 		s.Modal = nil
 		return nil
+	case view.ConfirmationResultMessage:
+		s.Modal = nil
+		newVersionMessage := msg.Msg.(editor.EditFinishedMsg)
+		log.Info().Msgf("Confirmation result in secrets: %v", msg.Result)
+		if msg.Result {
+			log.Info().Msg("Creating new secret")
+			log.Info().Msgf("Creating new secret based on %v", newVersionMessage.CurrentSecret.Title())
+			err := s.gcp.AddSecretVersion(newVersionMessage.CurrentSecret.Title(), newVersionMessage.SecretData)
+			if err != nil {
+				log.Error().Msgf("Error creating new secret: %v", err)
+			}
+		}
+		return nil
 	}
 
 	if s.Modal == nil {
@@ -138,7 +151,7 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 		case tea.KeyMsg:
 			if list.IsFiltering() == false {
 				switch msg.String() {
-				case "e":
+				case "n":
 					f, err := os.Create("detail_content.env")
 					if err != nil {
 						log.Fatal()
@@ -158,21 +171,6 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 					s.Modal.Init()
 				case "ctrl+c":
 					return tea.Quit
-				case "n":
-					err := s.gcp.AddSecretVersion(list.SelectedItem().Title(), []byte("prueba2"))
-					if err != nil {
-						log.Error().Msgf("Error creating new secret version: %v", err)
-					}
-				case "ctrl+n":
-					log.Info().Msg("New secret version")
-
-				case "y":
-					if s.Modal == nil {
-						s.Modal = view.NewConfirm("Do you want to create a new secret based on this?", "hola")
-						s.Modal.Init()
-					} else {
-						s.Modal = nil
-					}
 				case "h":
 					detail.Hidden = !detail.Hidden
 				case "v":
@@ -203,10 +201,19 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 					toast.SetText("Secrets refreshed")
 				}
 			}
-		case editor.EditorFinishedMsg:
-			toast.SetText("Saved")
-			if msg.Err != nil {
-				return tea.Quit
+		case editor.EditFinishedMsg:
+			if msg.Equal {
+				toast.SetText("No changes detected")
+			} else {
+				log.Info().Msgf("Changes detected in secret %v", msg.CurrentSecret.Title())
+				toast.SetText("Changes detected")
+
+				s.Modal = view.NewConfirm("Do you want to create a new secret based on this?", msg)
+				s.Modal.Init()
+
+				detail.SetContent(string(msg.SecretData))
+				_, cmd = detail.Update(msg)
+				return cmd
 			}
 			return nil
 		case SecretLoadedMsg:
