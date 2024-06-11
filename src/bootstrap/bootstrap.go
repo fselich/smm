@@ -21,7 +21,7 @@ func LoadConfig() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(configPath)
-	viper.SetDefault("projectIds", []string{"***REMOVED***", "otra cosa"})
+	viper.SetDefault("projectIds", []string{"project1", "project2"})
 
 	if _, err := os.Stat(configFile); os.IsNotExist(err) {
 		err = viper.WriteConfigAs(configFile)
