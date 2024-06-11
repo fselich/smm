@@ -14,6 +14,7 @@ func init() {
 func main() {
 	m := model.New()
 	p := tea.NewProgram(m, tea.WithAltScreen())
+
 	_, err := p.Run()
 	if err != nil {
 		return
