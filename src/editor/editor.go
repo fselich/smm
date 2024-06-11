@@ -8,7 +8,11 @@ import (
 	"os/exec"
 )
 
-type EditorFinishedMsg struct{ Err error }
+type EditFinishedMsg struct {
+	Equal         bool
+	CurrentSecret view.Secret
+	SecretData    []byte
+}
 
 func OpenEditor(secretData string, currentSecret view.Secret) tea.Cmd {
 	editor := os.Getenv("EDITOR")
@@ -17,26 +21,23 @@ func OpenEditor(secretData string, currentSecret view.Secret) tea.Cmd {
 	}
 	c := exec.Command(editor, "detail_content.env")
 	return tea.ExecProcess(c, func(err error) tea.Msg {
-		compareAndDeleteFile(secretData, "detail_content.env")
+		fileContent, err := os.ReadFile("detail_content.env")
+		equal := isEqual(secretData, fileContent)
 
-		return EditorFinishedMsg{err}
+		return EditFinishedMsg{equal, currentSecret, fileContent}
 	})
 }
 
-func compareAndDeleteFile(secretData string, file string) {
-	fileContent, err := os.ReadFile(file)
-	if err != nil {
-		log.Fatal()
-	}
+func isEqual(secretData string, fileContent []byte) bool {
+	var equal bool
 
 	if string(fileContent) != secretData {
 		log.Info().Msg("The file content is different from secretData")
+		equal = false
 	} else {
 		log.Info().Msg("The file content is the same as secretData")
+		equal = true
 	}
 
-	err = os.Remove(file)
-	if err != nil {
-		log.Fatal()
-	}
+	return equal
 }
