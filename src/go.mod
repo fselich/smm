@@ -10,13 +10,13 @@ require (
 	github.com/charmbracelet/bubbletea v0.26.2
 	github.com/charmbracelet/lipgloss v0.10.0
 	github.com/erikgeiser/promptkit v0.9.0
-	github.com/joho/godotenv v1.5.1
 	github.com/mattn/go-runewidth v0.0.15
 	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6
 	github.com/muesli/reflow v0.3.0
 	github.com/muesli/termenv v0.15.2
 	github.com/rs/zerolog v1.32.0
 	github.com/spf13/viper v1.19.0
+	golang.design/x/clipboard v0.7.0
 	google.golang.org/api v0.181.0
 )
 
@@ -66,6 +66,9 @@ require (
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
+	golang.org/x/exp/shiny v0.0.0-20240604190554-fc45aab8b7f8 // indirect
+	golang.org/x/image v0.14.0 // indirect
+	golang.org/x/mobile v0.0.0-20231127183840-76ac6878050a // indirect
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/oauth2 v0.20.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect

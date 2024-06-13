@@ -9,6 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/rs/zerolog/log"
+	"golang.design/x/clipboard"
 	"os"
 	"strconv"
 )
@@ -152,9 +153,9 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 			if list.IsFiltering() == false {
 				switch msg.String() {
 				case "n":
-					f, err := os.Create("detail_content.env")
+					f, err := os.Create(list.SelectedItem().Hash())
 					if err != nil {
-						log.Fatal()
+						log.Fatal().Msgf("Error creating file: %v", err)
 					}
 					defer f.Close()
 
@@ -191,7 +192,15 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 					list.Select(selected.Index())
 					return cmd
 				case "c":
-					toast.SetText("Secret copied to clipboard")
+					err := clipboard.Init()
+					if err != nil {
+						log.Error().Msgf("Error initializing clipboard: %v", err)
+					} else {
+						secretName := list.SelectedItem().FullPath()
+						secretData := string(s.gcp.GetSecret(secretName))
+						clipboard.Write(clipboard.FmtText, []byte(secretData))
+						toast.SetText("Secret copied to clipboard")
+					}
 				case "r":
 					s.Init()
 					resizeCmd := func() tea.Msg {

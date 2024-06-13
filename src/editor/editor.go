@@ -19,9 +19,10 @@ func OpenEditor(secretData string, currentSecret view.Secret) tea.Cmd {
 	if editor == "" {
 		editor = "vim"
 	}
-	c := exec.Command(editor, "detail_content.env")
+	hash := currentSecret.Hash()
+	c := exec.Command(editor, hash)
 	return tea.ExecProcess(c, func(err error) tea.Msg {
-		fileContent, err := os.ReadFile("detail_content.env")
+		fileContent, err := os.ReadFile(hash)
 		equal := isEqual(secretData, fileContent)
 
 		return EditFinishedMsg{equal, currentSecret, fileContent}

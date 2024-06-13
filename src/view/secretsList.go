@@ -1,6 +1,8 @@
 package view
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	gcp2 "gcs/gcp"
 	"gcs/ui"
 	"github.com/charmbracelet/bubbles/list"
@@ -62,6 +64,12 @@ func (t Secret) Related() *Secret {
 
 func (t *Secret) SetRelated(secret *Secret) {
 	t.related = secret
+}
+
+func (t Secret) Hash() string {
+	hasher := sha256.New()
+	hasher.Write([]byte(t.title))
+	return hex.EncodeToString(hasher.Sum(nil)) + ".env"
 }
 
 func (t *Secret) SetIndex(index int) {

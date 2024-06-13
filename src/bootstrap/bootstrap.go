@@ -39,9 +39,8 @@ func LoadConfig() {
 func SetLog() {
 	file, err := os.OpenFile("gcs.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
 	if err != nil {
-		panic(err)
+		log.Fatal().Err(err).Msg("Error opening log file")
 	}
 
 	log.Logger = log.Output(file)
-	log.Info().Msg("Log file opened")
 }
