@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Gcp struct {
@@ -22,10 +23,11 @@ type Gcp struct {
 }
 
 type version struct {
-	Name     string
-	State    string
-	Version  int
-	FullPath string
+	Name      string
+	State     string
+	Version   int
+	FullPath  string
+	CreatedAt time.Time
 }
 
 func NewGcp(projectID string) (*Gcp, error) {
@@ -97,10 +99,11 @@ func (g *Gcp) GetSecretVersions(secretName string) []version {
 		versionNumber, _ := strconv.Atoi(versionParts[len(versionParts)-1])
 
 		version := version{
-			Name:     filepath.Base(secretName),
-			FullPath: secretName,
-			State:    resp.State.String(),
-			Version:  versionNumber,
+			Name:      filepath.Base(secretName),
+			FullPath:  secretName,
+			State:     resp.State.String(),
+			Version:   versionNumber,
+			CreatedAt: resp.CreateTime.AsTime(),
 		}
 		versions = append(versions, version)
 	}

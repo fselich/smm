@@ -9,6 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"path/filepath"
 	"sort"
+	"time"
 )
 
 type Secret struct {
@@ -19,12 +20,13 @@ type Secret struct {
 	secretType  string
 	version     int
 	related     *Secret
+	createdAt   time.Time
 }
 
 type ResizeMessage struct{}
 
-func NewSecret(title, fullPath, secretType string, version int) Secret {
-	return Secret{title: title, fullPath: fullPath, description: "test", secretType: secretType, version: version}
+func NewSecret(title, fullPath, secretType string, version int, createdAt time.Time) Secret {
+	return Secret{title: title, fullPath: fullPath, description: "test", secretType: secretType, version: version, createdAt: createdAt}
 }
 
 func (t Secret) FilterValue() string {
@@ -60,6 +62,10 @@ func (t Secret) Version() int {
 
 func (t Secret) Related() *Secret {
 	return t.related
+}
+
+func (t Secret) CreatedAt() time.Time {
+	return t.createdAt
 }
 
 func (t *Secret) SetRelated(secret *Secret) {
@@ -99,7 +105,7 @@ func NewSecretsList(width, height int, gcp *gcp2.Gcp) SecretsList {
 
 	if gcp != nil {
 		for _, secret := range gcp.Secrets() {
-			secretList = append(secretList, NewSecret(filepath.Base(secret), secret, "current", 0))
+			secretList = append(secretList, NewSecret(filepath.Base(secret), secret, "current", 0, time.Now()))
 		}
 	}
 
@@ -122,7 +128,7 @@ func (sl *SecretsList) SelectedItem() Secret {
 func (sl *SecretsList) SetItems(myList list.Model, gcpSecrets []string) {
 	var secretList []list.Item
 	for _, secret := range gcpSecrets {
-		secretList = append(secretList, NewSecret(filepath.Base(secret), secret, "current", 0))
+		secretList = append(secretList, NewSecret(filepath.Base(secret), secret, "current", 0, time.Now()))
 	}
 
 	myList.SetItems(secretList)

@@ -31,9 +31,9 @@ func (d *ItemDelegate) Render(w io.Writer, m list.Model, index int, item list.It
 	title := item.(Secret).Title()
 	if item.(Secret).Type() == "version" {
 		if item.(Secret).Title() == "1" {
-			title = fmt.Sprintf("%sv.%s", ui.StyleLow().Render("└──"), title)
+			title = fmt.Sprintf("%s%s [v.%s]", ui.StyleLow().Render("└──"), item.(Secret).CreatedAt().Format("2006-01-02 15:04:05"), title)
 		} else {
-			title = fmt.Sprintf("%sv.%s", ui.StyleLow().Render("├──"), title)
+			title = fmt.Sprintf("%s%s [v.%s]", ui.StyleLow().Render("├──"), item.(Secret).CreatedAt().Format("2006-01-02 15:04:05"), title)
 		}
 
 	}

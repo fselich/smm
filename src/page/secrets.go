@@ -111,8 +111,8 @@ func (s *Secrets) Resize(width int, height int) {
 		list.SetHeight(height - 6)
 	}
 
-	list.SetWidth(30)
-	detail.SetWidth(width - 4 - list.Width())
+	list.SetWidth(31)
+	detail.SetWidth(width - 5 - list.Width())
 	detail.SetHeight(height - 6)
 	help.SetWidth(list.Width() + detail.Width() + 2)
 	toast.SetWith(width)
@@ -183,7 +183,7 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 							versions = versions[1:]
 							toast.SetText(fmt.Sprintf("Secret has %v versions", len(versions)))
 							for i, version := range versions {
-								secret := view.NewSecret(strconv.Itoa(version.Version), version.FullPath, "version", version.Version)
+								secret := view.NewSecret(strconv.Itoa(version.Version), version.FullPath, "version", version.Version, version.CreatedAt)
 								secret.SetRelated(&selected)
 								cmd = list.InsertItem(list.RealIndex()+1+i, secret)
 							}
