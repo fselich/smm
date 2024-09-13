@@ -147,8 +147,6 @@ func (g *Gcp) GetSecretVersion(secretName, version string) []byte {
 }
 
 func (g *Gcp) AddSecretVersion(secretName string, payload []byte) error {
-	secretName = "testFelipe"
-
 	parent := fmt.Sprintf("projects/%s/secrets/%s", g.projectID, secretName)
 
 	crc32c := crc32.MakeTable(crc32.Castagnoli)
