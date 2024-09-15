@@ -39,6 +39,12 @@ type CurrentSecret struct {
 	index int
 }
 
+type RestoreSecretMsg struct {
+	FullPath string
+	Title    string
+	Version  int
+}
+
 func (S CurrentSecret) Name() string {
 	return S.name
 }
@@ -133,15 +139,37 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 		s.Modal = nil
 		return nil
 	case view.ConfirmationResultMessage:
-		s.Modal = nil
-		newVersionMessage := msg.Msg.(editor.EditFinishedMsg)
-		log.Info().Msgf("Confirmation result in secrets: %v", msg.Result)
-		if msg.Result {
-			log.Info().Msg("Creating new secret")
-			log.Info().Msgf("Creating new secret based on %v", newVersionMessage.CurrentSecret.Title())
-			err := s.gcp.AddSecretVersion(newVersionMessage.CurrentSecret.Title(), newVersionMessage.SecretData)
-			if err != nil {
-				log.Error().Msgf("Error creating new secret: %v", err)
+		switch msg.Msg.(type) {
+		case editor.EditFinishedMsg:
+			s.Modal = nil
+			newVersionMessage := msg.Msg.(editor.EditFinishedMsg)
+			log.Info().Msgf("Confirmation result in secrets: %v", msg.Result)
+			if msg.Result {
+				var title string
+				if newVersionMessage.CurrentSecret.Type() == "version" {
+					title = newVersionMessage.CurrentSecret.Related().Title()
+				} else {
+					title = newVersionMessage.CurrentSecret.Title()
+				}
+				log.Info().Msg("Creating new secret")
+				log.Info().Msgf("Creating new secret based on %v", title)
+				err := s.gcp.AddSecretVersion(title, newVersionMessage.SecretData)
+				if err != nil {
+					log.Error().Msgf("Error creating new secret: %v", err)
+				}
+			}
+		case RestoreSecretMsg:
+			toast.SetText(fmt.Sprintf("Restoring version"))
+			s.Modal = nil
+			restoreMessage := msg.Msg.(RestoreSecretMsg)
+			if msg.Result {
+				log.Info().Msgf("Restoring secret %v version %v", restoreMessage.Title, restoreMessage.Version)
+				secretData := s.gcp.GetSecretVersion(restoreMessage.FullPath, strconv.Itoa(restoreMessage.Version))
+				log.Info().Msg("Restoring secret")
+				err := s.gcp.AddSecretVersion(restoreMessage.Title, secretData)
+				if err != nil {
+					log.Error().Msgf("Error creating new secret: %v", err)
+				}
 			}
 		}
 		return nil
@@ -160,13 +188,30 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 					defer f.Close()
 
 					secretName := list.SelectedItem().FullPath()
-					secretData := string(s.gcp.GetSecret(secretName))
+
+					var secretData string
+					if list.SelectedItem().Type() == "version" {
+						version := list.SelectedItem().Version()
+						secretData = string(s.gcp.GetSecretVersion(secretName, strconv.Itoa(version)))
+					} else {
+						secretData = string(s.gcp.GetSecret(secretName))
+					}
+
 					_, err = f.WriteString(secretData)
 					if err != nil {
 						log.Fatal()
 					}
 
 					return editor.OpenEditor(secretData, list.SelectedItem())
+				case "r":
+					toast.SetText(fmt.Sprintf("Restoring version"))
+					msg := RestoreSecretMsg{
+						FullPath: list.SelectedItem().Related().FullPath(),
+						Title:    list.SelectedItem().Related().Title(),
+						Version:  list.SelectedItem().Version(),
+					}
+					s.Modal = view.NewConfirm("Do you want to restore this secret version?", msg)
+					s.Modal.Init()
 				case "p":
 					s.Modal = view.NewProjectSelectorModal()
 					s.Modal.Init()
@@ -201,7 +246,7 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 						clipboard.Write(clipboard.FmtText, []byte(secretData))
 						toast.SetText("Secret copied to clipboard")
 					}
-				case "r":
+				case "f5":
 					s.Init()
 					resizeCmd := func() tea.Msg {
 						return view.ResizeMessage{}

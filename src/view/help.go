@@ -17,6 +17,7 @@ type keyMap struct {
 	NewVersion key.Binding
 	Copy       key.Binding
 	Refresh    key.Binding
+	Restore    key.Binding
 	ProjectId  key.Binding
 	Versions   key.Binding
 	Quit       key.Binding
@@ -29,7 +30,7 @@ type Help struct {
 // ShortHelp returns keybindings to be shown in the mini help view. It's part
 // of the key.Map interface.
 func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Search, k.Copy, k.NewVersion, k.Versions, k.Refresh, k.ProjectId, k.Quit}
+	return []key.Binding{k.Search, k.Copy, k.NewVersion, k.Versions, k.Restore, k.Refresh, k.ProjectId, k.Quit}
 }
 
 // FullHelp returns keybindings for the expanded help view. It's part of the
@@ -77,9 +78,13 @@ var keys = keyMap{
 		key.WithKeys("c"),
 		key.WithHelp("c", "copy"),
 	),
-	Refresh: key.NewBinding(
+	Restore: key.NewBinding(
 		key.WithKeys("r"),
-		key.WithHelp("r", "refresh"),
+		key.WithHelp("r", "restore"),
+	),
+	Refresh: key.NewBinding(
+		key.WithKeys("F5"),
+		key.WithHelp("F5", "refresh"),
 	),
 	ProjectId: key.NewBinding(
 		key.WithKeys("p"),
