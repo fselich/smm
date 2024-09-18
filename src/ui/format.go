@@ -7,9 +7,15 @@ import (
 	"github.com/muesli/reflow/wordwrap"
 	"regexp"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 func SyntaxHighlight(secretData []byte) string {
+	if !isPrintable(secretData) {
+		return "\033[37mNon printable data.\033[0m"
+	}
+
 	var buf bytes.Buffer
 	format := detectFormat(secretData)
 	err := quick.Highlight(&buf, string(secretData), format, "terminal", "rrt")
@@ -53,4 +59,17 @@ func isEnvFormat(s string) bool {
 func isJSON(s string) bool {
 	var js map[string]interface{}
 	return json.Unmarshal([]byte(s), &js) == nil
+}
+
+func isPrintable(content []byte) bool {
+	if !utf8.ValidString(string(content)) {
+		return false
+	}
+
+	for _, r := range content {
+		if !unicode.IsPrint(rune(r)) && !unicode.IsSpace(rune(r)) && (r < 32 || r == 127) {
+			return false
+		}
+	}
+	return true
 }

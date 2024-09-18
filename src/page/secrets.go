@@ -204,6 +204,10 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 
 					return editor.OpenEditor(secretData, list.SelectedItem())
 				case "r":
+					if list.SelectedItem().Type() == "current" {
+						toast.SetText("Cannot restore current version")
+						return nil
+					}
 					toast.SetText(fmt.Sprintf("Restoring version"))
 					msg := RestoreSecretMsg{
 						FullPath: list.SelectedItem().Related().FullPath(),
@@ -217,8 +221,6 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 					s.Modal.Init()
 				case "ctrl+c":
 					return tea.Quit
-				case "h":
-					detail.Hidden = !detail.Hidden
 				case "v":
 					selected := list.SelectedItem()
 					if selected.Type() == "current" {
@@ -307,13 +309,6 @@ type SecretLoadedMsg struct {
 
 func (s *Secrets) showSecret() tea.Cmd {
 	list := s.components["list"].(*view.SecretsList)
-	detail := s.components["detail"].(*view.SecretView)
-
-	if detail.Hidden {
-		detail.SetContent("")
-		return nil
-	}
-
 	selected := list.SelectedItem()
 
 	return func() tea.Msg {
