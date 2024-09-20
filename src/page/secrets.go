@@ -138,6 +138,10 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 		log.Info().Msgf("Project selected: %v", msg.ProjectId)
 		s.Modal = nil
 		return nil
+	case view.SearchMessage:
+		list.DeepSearch(msg.Query, s.gcp)
+
+		s.Modal = nil
 	case view.ConfirmationResultMessage:
 		switch msg.Msg.(type) {
 		case editor.EditFinishedMsg:
@@ -159,7 +163,7 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 				}
 			}
 		case RestoreSecretMsg:
-			toast.SetText(fmt.Sprintf("Restoring version"))
+			toast.SetText("Restoring version")
 			s.Modal = nil
 			restoreMessage := msg.Msg.(RestoreSecretMsg)
 			if msg.Result {
@@ -169,10 +173,14 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 				err := s.gcp.AddSecretVersion(restoreMessage.Title, secretData)
 				if err != nil {
 					log.Error().Msgf("Error creating new secret: %v", err)
+					toast.SetText("Error restoring secret")
+					return nil
 				}
+				toast.SetText("Secret restored")
+			} else {
+				toast.SetText("Restore canceled")
 			}
 		}
-		return nil
 	}
 
 	if s.Modal == nil {
@@ -255,6 +263,9 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 					}
 					cmds = append(cmds, resizeCmd)
 					toast.SetText("Secrets refreshed")
+				case "ctrl+f":
+					s.Modal = view.NewSearchForm()
+					s.Modal.Init()
 				}
 			}
 		case editor.EditFinishedMsg:
@@ -310,6 +321,15 @@ type SecretLoadedMsg struct {
 func (s *Secrets) showSecret() tea.Cmd {
 	list := s.components["list"].(*view.SecretsList)
 	selected := list.SelectedItem()
+
+	if selected.FullPath() == "" {
+		return func() tea.Msg {
+			return SecretLoadedMsg{
+				Secret: selected,
+				Text:   "",
+			}
+		}
+	}
 
 	return func() tea.Msg {
 		var text string

@@ -246,3 +246,20 @@ func (sl *SecretsList) DelVersionItems() bool {
 func (sl *SecretsList) ResetFilter() {
 	sl.teaView.ResetFilter()
 }
+
+func (sl *SecretsList) DeepSearch(query string, gcp *gcp2.Gcp) {
+
+	var secretList []list.Item
+
+	if query == "" {
+		for _, secret := range gcp.Secrets() {
+			secretList = append(secretList, NewSecret(filepath.Base(secret), secret, "current", 0, time.Now()))
+		}
+	} else {
+		for _, secret := range gcp.SearchInSecrets(query) {
+			secretList = append(secretList, NewSecret(filepath.Base(secret), secret, "current", 0, time.Now()))
+		}
+	}
+
+	sl.teaView.SetItems(secretList)
+}

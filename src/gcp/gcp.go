@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -166,4 +167,35 @@ func (g *Gcp) AddSecretVersion(secretName string, payload []byte) error {
 	}
 	log.Info().Msgf("Added secret version: %s\n", result.Name)
 	return nil
+}
+
+func (g *Gcp) SearchInSecrets(query string) []string {
+	secrets, _ := g.fetchSecrets()
+
+	var foundSecrets []string
+	var wg sync.WaitGroup
+	results := make(chan string, len(secrets))
+
+	for _, secret := range secrets {
+		wg.Add(1)
+		go func(secret string) {
+			defer wg.Done()
+			secretData := g.GetSecret(secret)
+
+			if strings.Contains(string(secretData), query) {
+				results <- secret
+			}
+		}(secret)
+	}
+
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	for secret := range results {
+		foundSecrets = append(foundSecrets, secret)
+	}
+
+	return foundSecrets
 }
