@@ -34,8 +34,50 @@ func detectFormat(secretData []byte) string {
 	if isJSON(string(secretData)) {
 		return "json"
 	}
+	if isPhpFormat(string(secretData)) {
+		return "php"
+	}
+	if isINIFormat(string(secretData)) {
+		return "ini"
+	}
 
 	return "default"
+}
+
+func isINIFormat(s string) bool {
+	lines := strings.Split(s, "\n")
+
+	iniRegex := regexp.MustCompile(`^\s*(\[[^\]]+\]\s*$|[a-zA-Z_][a-zA-Z0-9_]*\s*=\s*.*$)`)
+
+	for _, line := range lines {
+		if line == "" || strings.HasPrefix(strings.TrimSpace(line), "#") {
+			continue
+		}
+
+		if !iniRegex.MatchString(line) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func isPhpFormat(s string) bool {
+	lines := strings.Split(s, "\n")
+
+	phpRegex := regexp.MustCompile(`^<\?php\s*`)
+
+	for _, line := range lines {
+		if line == "" || strings.HasPrefix(strings.TrimSpace(line), "#") {
+			continue
+		}
+
+		if phpRegex.MatchString(line) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func isEnvFormat(s string) bool {
