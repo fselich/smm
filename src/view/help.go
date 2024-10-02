@@ -8,6 +8,7 @@ import (
 )
 
 type keyMap struct {
+	Filter     key.Binding
 	Search     key.Binding
 	Up         key.Binding
 	Down       key.Binding
@@ -30,7 +31,7 @@ type Help struct {
 // ShortHelp returns keybindings to be shown in the mini help view. It's part
 // of the key.Map interface.
 func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Search, k.Copy, k.NewVersion, k.Versions, k.Restore, k.Refresh, k.ProjectId, k.Quit}
+	return []key.Binding{k.Filter, k.Search, k.Copy, k.NewVersion, k.Versions, k.Restore, k.ProjectId, k.Quit}
 }
 
 // FullHelp returns keybindings for the expanded help view. It's part of the
@@ -44,9 +45,13 @@ func (k keyMap) FullHelp() [][]key.Binding {
 }
 
 var keys = keyMap{
-	Search: key.NewBinding(
+	Filter: key.NewBinding(
 		key.WithKeys("/"),
-		key.WithHelp("/", "search"),
+		key.WithHelp("/", "filter"),
+	),
+	Search: key.NewBinding(
+		key.WithKeys("ctr+f"),
+		key.WithHelp("ctr+f", "search"),
 	),
 	Up: key.NewBinding(
 		key.WithKeys("up", "k"),
