@@ -256,7 +256,7 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 						clipboard.Write(clipboard.FmtText, []byte(secretData))
 						toast.SetText("Secret copied to clipboard")
 					}
-				case "f5":
+				case "esc":
 					s.Init()
 					resizeCmd := func() tea.Msg {
 						return view.ResizeMessage{}
@@ -288,6 +288,20 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 			return nil
 		}
 	} else {
+		switch msg := msg.(type) {
+		case tea.KeyMsg:
+			switch msg.String() {
+			case "esc":
+				s.Modal = nil
+				s.Init()
+				resizeCmd := func() tea.Msg {
+					return view.ResizeMessage{}
+				}
+				cmds = append(cmds, resizeCmd)
+				return tea.Batch(cmds...)
+			}
+		}
+
 		modal, cmd := s.Modal.Update(msg)
 		s.Modal = modal
 		return cmd
