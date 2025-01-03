@@ -1,6 +1,6 @@
 module gcs
 
-go 1.22.3
+go 1.23.2
 
 require (
 	cloud.google.com/go/secretmanager v1.13.0
