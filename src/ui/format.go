@@ -28,23 +28,23 @@ func SyntaxHighlight(secretData []byte) string {
 }
 
 func detectFormat(secretData []byte) string {
-	if isEnvFormat(string(secretData)) {
+	if isEnv(string(secretData)) {
 		return "bash"
 	}
 	if isJSON(string(secretData)) {
 		return "json"
 	}
-	if isPhpFormat(string(secretData)) {
+	if isPhp(string(secretData)) {
 		return "php"
 	}
-	if isINIFormat(string(secretData)) {
+	if isINI(string(secretData)) {
 		return "ini"
 	}
 
 	return "default"
 }
 
-func isINIFormat(s string) bool {
+func isINI(s string) bool {
 	lines := strings.Split(s, "\n")
 
 	iniRegex := regexp.MustCompile(`^\s*(\[[^\]]+\]\s*$|[a-zA-Z_][a-zA-Z0-9_]*\s*=\s*.*$)`)
@@ -62,7 +62,7 @@ func isINIFormat(s string) bool {
 	return true
 }
 
-func isPhpFormat(s string) bool {
+func isPhp(s string) bool {
 	lines := strings.Split(s, "\n")
 
 	phpRegex := regexp.MustCompile(`^<\?php\s*`)
@@ -80,7 +80,7 @@ func isPhpFormat(s string) bool {
 	return false
 }
 
-func isEnvFormat(s string) bool {
+func isEnv(s string) bool {
 	lines := strings.Split(s, "\n")
 
 	envRegex := regexp.MustCompile(`^\s*[a-zA-Z_][a-zA-Z0-9_]*\s*=\s*.*$`)
