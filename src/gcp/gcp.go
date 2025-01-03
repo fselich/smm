@@ -119,7 +119,8 @@ func (g *Gcp) GetSecret(secretName string) []byte {
 
 	result, err := g.client.AccessSecretVersion(g.ctx, accessRequest)
 	if err != nil {
-		log.Fatal().Msgf("failed to access secret version: %v", err)
+		log.Info().Msgf("failed to access secret version (%s): %v", secretName, err)
+		return nil
 	}
 
 	return result.Payload.Data
