@@ -24,10 +24,16 @@ func StyleUnselected() lipgloss.Style {
 		Foreground(lipgloss.Color("#87CEFA"))
 }
 
-func StyleBorder() lipgloss.Style {
+func StyleBorder(selected bool) lipgloss.Style {
+	var color string
+	if selected {
+		color = "#87CEFA"
+	} else {
+		color = "#505050"
+	}
 	return lipgloss.NewStyle().
 		Border(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("#87CEFA"))
+		BorderForeground(lipgloss.Color(color))
 }
 
 func StyleModal() lipgloss.Style {

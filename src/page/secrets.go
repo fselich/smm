@@ -66,10 +66,10 @@ func (s *Secrets) View() string {
 	listView := list.View()
 	detailView := detail.View()
 
-	borderedList := ui.StyleBorder().
+	borderedList := ui.StyleBorder(list.IsFocused).
 		Width(list.Width()).
 		Render(listView)
-	borderedDetail := ui.StyleBorder().
+	borderedDetail := ui.StyleBorder(detail.IsFocused).
 		Render(detailView)
 
 	borderedHelp := ui.StyleLowBorder().
@@ -266,6 +266,9 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 				case "ctrl+f":
 					s.Modal = view.NewSearchForm()
 					s.Modal.Init()
+				case "tab":
+					list.ToggleFocus()
+					detail.ToggleFocus()
 				}
 			}
 		case editor.EditFinishedMsg:

@@ -6,9 +6,10 @@ import (
 )
 
 type SecretView struct {
-	teaView viewport.Model
-	Hidden  bool
-	Secret  *Secret
+	teaView   viewport.Model
+	Hidden    bool
+	Secret    *Secret
+	IsFocused bool
 }
 
 func NewSecretView(width, height int) SecretView {
@@ -29,6 +30,11 @@ func (s *SecretView) View() string {
 
 func (s *SecretView) Update(msg tea.Msg) (SecretView, tea.Cmd) {
 	cmd := tea.Batch()
+
+	if _, ok := msg.(tea.KeyMsg); ok && !s.IsFocused {
+		return *s, cmd
+	}
+
 	s.teaView, cmd = s.teaView.Update(msg)
 	return *s, cmd
 }
@@ -47,4 +53,12 @@ func (s *SecretView) Width() int {
 
 func (s *SecretView) Height() int {
 	return s.teaView.Height
+}
+
+func (s *SecretView) ToggleFocus() {
+	if s.IsFocused {
+		s.IsFocused = false
+	} else {
+		s.IsFocused = true
+	}
 }
