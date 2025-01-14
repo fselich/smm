@@ -8,16 +8,17 @@ import (
 )
 
 type Model struct {
-	err    error
-	gcp    *gcp.Gcp
-	status int
-	width  int
-	height int
-	page   page.Page
+	err       error
+	gcp       *gcp.Gcp
+	status    int
+	width     int
+	height    int
+	page      page.Page
+	ProjectId string
 }
 
-func New() *Model {
-	return &Model{status: 1}
+func New(projectId string) *Model {
+	return &Model{status: 1, ProjectId: projectId}
 }
 
 func (m *Model) Init() tea.Cmd {
@@ -65,9 +66,14 @@ func (m *Model) setStatus(status int, msg any) {
 
 		m.page = page.NewSecrets(m.gcp, selected.Index())
 		m.page.Resize(m.width, m.height)
-		if _, ok := msg.(ShowProjectSelectMsg); ok {
+
+		switch msg := msg.(type) {
+		case view.ProjectSelectedMessage:
+			m.Update(msg)
+		case ShowProjectSelectMsg:
 			m.page.Update(tea.KeyMsg{Runes: []rune("p"), Type: tea.KeyRunes})
 		}
+
 		m.status = 2
 	}
 
@@ -82,7 +88,14 @@ func (m *Model) resize() {
 
 func (m *Model) View() string {
 	if m.page == nil {
-		m.setStatus(2, ShowProjectSelectMsg{})
+		if m.ProjectId != "" {
+			m.setStatus(2, view.ProjectSelectedMessage{
+				ProjectId: m.ProjectId,
+			})
+		} else {
+			m.setStatus(2, ShowProjectSelectMsg{})
+		}
+
 		m.View()
 	}
 
