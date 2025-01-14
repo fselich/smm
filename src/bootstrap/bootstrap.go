@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"os"
@@ -37,7 +38,13 @@ func LoadConfig() {
 }
 
 func SetLog() {
-	file, err := os.OpenFile("gcs.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
+	logPath := viper.GetString("logPath")
+
+	if logPath == "" {
+		log.Logger = log.Logger.Level(zerolog.Disabled)
+		return
+	}
+	file, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Error opening log file")
 	}
