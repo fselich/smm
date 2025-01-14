@@ -83,7 +83,8 @@ func (t *Secret) SetIndex(index int) {
 }
 
 type SecretsList struct {
-	teaView list.Model
+	teaView   list.Model
+	IsFocused bool
 }
 
 func NewSecretsList(width, height int, gcp *gcp2.Gcp) SecretsList {
@@ -110,7 +111,7 @@ func NewSecretsList(width, height int, gcp *gcp2.Gcp) SecretsList {
 	}
 
 	myList.SetItems(secretList)
-	return SecretsList{teaView: myList}
+	return SecretsList{teaView: myList, IsFocused: true}
 }
 
 func (sl *SecretsList) SelectedItem() Secret {
@@ -190,6 +191,11 @@ func (sl *SecretsList) SelectByName(name string) {
 func (sl *SecretsList) Update(msg tea.Msg) (SecretsList, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
+
+	if _, ok := msg.(tea.KeyMsg); ok && !sl.IsFocused {
+		return *sl, cmd
+	}
+
 	sl.teaView, cmd = sl.teaView.Update(msg)
 	cmds = append(cmds, cmd)
 
@@ -262,4 +268,12 @@ func (sl *SecretsList) DeepSearch(query string, gcp *gcp2.Gcp) {
 	}
 
 	sl.teaView.SetItems(secretList)
+}
+
+func (sl *SecretsList) ToggleFocus() {
+	if sl.IsFocused {
+		sl.IsFocused = false
+	} else {
+		sl.IsFocused = true
+	}
 }
