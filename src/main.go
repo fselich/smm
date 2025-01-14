@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"gcs/bootstrap"
 	"gcs/model"
 	tea "github.com/charmbracelet/bubbletea"
@@ -13,7 +14,14 @@ func init() {
 }
 
 func main() {
-	projectId := viper.GetString("selected")
+	projectIdFlag := flag.String("p", "", "Project ID to use")
+	flag.Parse()
+
+	projectId := *projectIdFlag
+	if projectId == "" {
+		projectId = viper.GetString("selected")
+	}
+
 	p := tea.NewProgram(model.New(projectId), tea.WithAltScreen())
 
 	_, err := p.Run()
