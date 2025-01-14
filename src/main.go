@@ -4,6 +4,7 @@ import (
 	"gcs/bootstrap"
 	"gcs/model"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/spf13/viper"
 )
 
 func init() {
@@ -12,8 +13,8 @@ func init() {
 }
 
 func main() {
-	m := model.New()
-	p := tea.NewProgram(m, tea.WithAltScreen())
+	projectId := viper.GetString("selected")
+	p := tea.NewProgram(model.New(projectId), tea.WithAltScreen())
 
 	_, err := p.Run()
 	if err != nil {

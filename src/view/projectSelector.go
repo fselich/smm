@@ -43,6 +43,21 @@ func (p *ProjectSelector) Update(msg tea.Msg) (Modal, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEnter:
+
+			uniqueProjectIds := make(map[string]struct{})
+			for _, id := range append(viper.GetStringSlice("projectIds"), p.teaView.Value()) {
+				uniqueProjectIds[id] = struct{}{}
+			}
+
+			projectIds := make([]string, 0, len(uniqueProjectIds))
+			for id := range uniqueProjectIds {
+				projectIds = append(projectIds, id)
+			}
+
+			viper.Set("selected", p.teaView.Value())
+			viper.Set("projectIds", projectIds)
+			_ = viper.WriteConfig()
+
 			cmd = func() tea.Msg {
 				return ProjectSelectedMessage{p.teaView.Value()}
 			}
