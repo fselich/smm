@@ -83,8 +83,9 @@ func (t *Secret) SetIndex(index int) {
 }
 
 type SecretsList struct {
-	teaView   list.Model
-	IsFocused bool
+	teaView     list.Model
+	IsFocused   bool
+	SearchQuery string
 }
 
 func NewSecretsList(width, height int, gcp *gcp2.Gcp) SecretsList {
@@ -266,6 +267,8 @@ func (sl *SecretsList) DeepSearch(query string, gcp *gcp2.Gcp) {
 			secretList = append(secretList, NewSecret(filepath.Base(secret), secret, "current", 0, time.Now()))
 		}
 	}
+
+	sl.SearchQuery = query
 
 	sl.teaView.SetItems(secretList)
 }
