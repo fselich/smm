@@ -89,9 +89,7 @@ func (m *Model) resize() {
 func (m *Model) View() string {
 	if m.page == nil {
 		if m.ProjectId != "" {
-			m.setStatus(2, view.ProjectSelectedMessage{
-				ProjectId: m.ProjectId,
-			})
+			m.Update(view.ProjectSelectedMessage{ProjectId: m.ProjectId})
 		} else {
 			m.setStatus(2, ShowProjectSelectMsg{})
 		}

@@ -87,9 +87,15 @@ func (s *Secrets) View() string {
 		borderedList = ui.PlaceOverlay(x, 0, listTitle, borderedList, false)
 	}
 
-	x = (detail.Width() - len(list.SelectedItem().Title())) / 2
-	detailTitle := ui.StyleBorderTitle().Render(list.SelectedItem().Title())
-	borderedDetail = ui.PlaceOverlay(x, 0, detailTitle, borderedDetail, false)
+	if detail.IsFiltering {
+		x = (detail.Width() - len(detail.FilterValue)) / 2
+		detailTitle := ui.StyleBorderTitle().Render(detail.FilterValue)
+		borderedDetail = ui.PlaceOverlay(x, 0, detailTitle, borderedDetail, false)
+	} else {
+		x = (detail.Width() - len(list.SelectedItem().Title())) / 2
+		detailTitle := ui.StyleBorderTitle().Render(list.SelectedItem().Title())
+		borderedDetail = ui.PlaceOverlay(x, 0, detailTitle, borderedDetail, false)
+	}
 
 	render := lipgloss.JoinVertical(
 		lipgloss.Top,
@@ -140,8 +146,8 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 		return nil
 	case view.SearchMessage:
 		list.DeepSearch(msg.Query, s.gcp)
-
 		s.Modal = nil
+		detail.SetFilteredValue(msg.Query)
 	case view.ConfirmationResultMessage:
 		switch msg.Msg.(type) {
 		case editor.EditFinishedMsg:
@@ -186,10 +192,10 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 	if s.Modal == nil {
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
-			if list.IsFiltering() == false {
+			if list.IsFiltering() == false && detail.IsFiltering == false {
 				switch msg.String() {
 				case "n":
-					f, err := os.Create(list.SelectedItem().Hash())
+					f, err := os.Create("/tmp/" + list.SelectedItem().Hash())
 					if err != nil {
 						log.Fatal().Msgf("Error creating file: %v", err)
 					}
@@ -256,6 +262,9 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 						clipboard.Write(clipboard.FmtText, []byte(secretData))
 						toast.SetText("Secret copied to clipboard")
 					}
+				case "?":
+					s.Modal = view.NewProjectSelectorModal()
+					s.Modal.Init()
 				case "esc":
 					s.Init()
 					resizeCmd := func() tea.Msg {
@@ -263,12 +272,15 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 					}
 					cmds = append(cmds, resizeCmd)
 					toast.SetText("Secrets refreshed")
+					list.SearchQuery = ""
+					detail.SetFilteredValue("")
 				case "ctrl+f":
 					s.Modal = view.NewSearchForm()
 					s.Modal.Init()
 				case "tab":
 					list.ToggleFocus()
 					detail.ToggleFocus()
+					detail.SetFilteredValue(list.SearchQuery)
 				}
 			}
 		case editor.EditFinishedMsg:
@@ -355,7 +367,6 @@ func (s *Secrets) showSecret() tea.Cmd {
 			versionSecret := s.gcp.GetSecretVersion(selected.FullPath(), strconv.Itoa(selected.Version()))
 			text = ui.SyntaxHighlight(versionSecret)
 		} else {
-
 			secretData := s.gcp.GetSecret(selected.FullPath())
 			text = ui.SyntaxHighlight(secretData)
 		}
@@ -384,7 +395,7 @@ func (s *Secrets) Init() {
 	s.components["detail"] = &secretView
 	s.components["help"] = &help
 	s.components["toast"] = &toast
-	s.showSecret()
+	s.Update(s.showSecret()())
 }
 
 func (s *Secrets) Select(index int) {

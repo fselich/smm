@@ -13,17 +13,19 @@ type EditFinishedMsg struct {
 	CurrentSecret view.Secret
 	SecretData    []byte
 }
-
+	
 func OpenEditor(secretData string, currentSecret view.Secret) tea.Cmd {
 	editor := os.Getenv("EDITOR")
 	if editor == "" {
 		editor = "vim"
 	}
 	hash := currentSecret.Hash()
-	c := exec.Command(editor, hash)
+	c := exec.Command(editor, "/tmp/"+hash)
 	return tea.ExecProcess(c, func(err error) tea.Msg {
-		fileContent, err := os.ReadFile(hash)
+		fileContent, err := os.ReadFile("/tmp/" + hash)
 		equal := isEqual(secretData, fileContent)
+
+		_ = os.Remove("/tmp/" + hash)
 
 		return EditFinishedMsg{equal, currentSecret, fileContent}
 	})
