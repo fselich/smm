@@ -31,6 +31,7 @@ type Secrets struct {
 	gcp        *gcp2.Gcp
 	components map[string]any
 	Modal      view.Modal
+	ListWidth  int
 }
 
 type CurrentSecret struct {
@@ -123,7 +124,7 @@ func (s *Secrets) Resize(width int, height int) {
 		list.SetHeight(height - 6)
 	}
 
-	list.SetWidth(31)
+	list.SetWidth(s.ListWidth)
 	detail.SetWidth(width - 5 - list.Width())
 	detail.SetHeight(height - 6)
 	help.SetWidth(list.Width() + detail.Width() + 2)
@@ -281,6 +282,12 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 					list.ToggleFocus()
 					detail.ToggleFocus()
 					detail.SetFilteredValue(list.SearchQuery)
+				case "shift+right":
+					cmds = append(cmds, adjustListWidth(s, 1))
+					return tea.Batch(cmds...)
+				case "shift+left":
+					cmds = append(cmds, adjustListWidth(s, -1))
+					return tea.Batch(cmds...)
 				}
 			}
 		case editor.EditFinishedMsg:
@@ -347,6 +354,19 @@ type SecretLoadedMsg struct {
 	Text   string
 }
 
+func adjustListWidth(s *Secrets, delta int) tea.Cmd {
+	s.ListWidth += delta
+	if s.ListWidth > 50 {
+		s.ListWidth = 50
+	} else if s.ListWidth < 6 {
+		s.ListWidth = 6
+	}
+	resizeCmd := func() tea.Msg {
+		return view.ResizeMessage{}
+	}
+	return resizeCmd
+}
+
 func (s *Secrets) showSecret() tea.Cmd {
 	list := s.components["list"].(*view.SecretsList)
 	selected := list.SelectedItem()
@@ -379,7 +399,7 @@ func (s *Secrets) showSecret() tea.Cmd {
 }
 
 func NewSecrets(gcp *gcp2.Gcp, selected int) *Secrets {
-	page := &Secrets{gcp: gcp}
+	page := &Secrets{gcp: gcp, ListWidth: 31}
 	page.Init()
 	page.Select(selected)
 	return page
