@@ -14,19 +14,6 @@ import (
 	"strconv"
 )
 
-type Page interface {
-	Init()
-	View() string
-	Resize(int, int)
-	Update(cmd tea.Msg) tea.Cmd
-}
-
-type SetStatusMsg struct {
-	Status int
-	From   string
-	Data   any
-}
-
 type Secrets struct {
 	gcp        *gcp2.Gcp
 	components map[string]any
