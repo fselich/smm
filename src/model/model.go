@@ -7,18 +7,24 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+type Page interface {
+	Init()
+	View() string
+	Resize(int, int)
+	Update(cmd tea.Msg) tea.Cmd
+}
+
 type Model struct {
 	err       error
 	gcp       *gcp.Gcp
-	status    int
 	width     int
 	height    int
-	page      page.Page
+	page      Page
 	ProjectId string
 }
 
 func New(projectId string) *Model {
-	return &Model{status: 1, ProjectId: projectId}
+	return &Model{ProjectId: projectId}
 }
 
 func (m *Model) Init() tea.Cmd {
@@ -35,15 +41,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if err != nil {
 			return m, nil
 		}
-		m.setStatus(2, nil)
+		m.initialize(false)
 		return m, nil
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
 		m.resize()
-		return m, nil
-	case page.SetStatusMsg:
-		m.setStatus(msg.Status, msg)
 		return m, nil
 	case view.ResizeMessage:
 		m.resize()
@@ -60,24 +63,15 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 type ShowProjectSelectMsg struct {
 }
 
-func (m *Model) setStatus(status int, msg any) {
-	if status == 2 {
-		var selected page.CurrentSecret
+func (m *Model) initialize(showProjectSelect bool) {
+	var selected page.CurrentSecret
 
-		m.page = page.NewSecrets(m.gcp, selected.Index())
-		m.page.Resize(m.width, m.height)
+	m.page = page.NewSecrets(m.gcp, selected.Index())
+	m.page.Resize(m.width, m.height)
 
-		switch msg := msg.(type) {
-		case view.ProjectSelectedMessage:
-			m.Update(msg)
-		case ShowProjectSelectMsg:
-			m.page.Update(tea.KeyMsg{Runes: []rune("p"), Type: tea.KeyRunes})
-		}
-
-		m.status = 2
+	if showProjectSelect {
+		m.page.Update(tea.KeyMsg{Runes: []rune("p"), Type: tea.KeyRunes})
 	}
-
-	m.resize()
 }
 
 func (m *Model) resize() {
@@ -91,7 +85,7 @@ func (m *Model) View() string {
 		if m.ProjectId != "" {
 			m.Update(view.ProjectSelectedMessage{ProjectId: m.ProjectId})
 		} else {
-			m.setStatus(2, ShowProjectSelectMsg{})
+			m.initialize(true)
 		}
 
 		m.View()

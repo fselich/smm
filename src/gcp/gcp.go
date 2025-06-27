@@ -31,6 +31,7 @@ type version struct {
 	CreatedAt time.Time
 }
 
+// NewGcp @todo Manage connection errors
 func NewGcp(projectID string) (*Gcp, error) {
 	ctx := context.Background()
 	log.Info().Msg("Connecting to GCP")
