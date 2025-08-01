@@ -53,14 +53,11 @@ func (S CurrentSecret) Index() int {
 }
 
 func (s *Secrets) View() string {
-	listView := s.components.list.View()
-	detailView := s.components.detail.View()
-
 	borderedList := ui.StyleBorder(s.components.list.IsFocused).
 		Width(s.components.list.Width()).
-		Render(listView)
+		Render(s.components.list.View())
 	borderedDetail := ui.StyleBorder(s.components.detail.IsFocused).
-		Render(detailView)
+		Render(s.components.detail.View())
 
 	borderedHelp := ui.StyleLowBorder().
 		Width(s.components.list.Width() + s.components.detail.Width() + 2).
