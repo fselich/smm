@@ -2,11 +2,11 @@ package view
 
 import (
 	"fmt"
-	"gcs/ui"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/muesli/reflow/truncate"
 	"io"
+	"smm/ui"
 )
 
 type ItemDelegate struct {

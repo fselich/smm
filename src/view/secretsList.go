@@ -3,11 +3,11 @@ package view
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	gcp2 "gcs/gcp"
-	"gcs/ui"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"path/filepath"
+	gcp2 "smm/gcp"
+	"smm/ui"
 	"sort"
 	"time"
 )

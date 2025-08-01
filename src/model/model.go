@@ -1,11 +1,11 @@
 package model
 
 import (
-	"gcs/gcp"
-	"gcs/page"
-	"gcs/view"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/rs/zerolog/log"
+	"smm/gcp"
+	"smm/page"
+	"smm/view"
 )
 
 type Page interface {

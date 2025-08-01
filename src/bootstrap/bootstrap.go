@@ -9,7 +9,7 @@ import (
 )
 
 func LoadConfig() {
-	configPath := filepath.Join(os.Getenv("HOME"), ".config", "gcs")
+	configPath := filepath.Join(os.Getenv("HOME"), ".config", "smm")
 	configFile := filepath.Join(configPath, "config.yaml")
 
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {

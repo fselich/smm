@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
-	"gcs/bootstrap"
-	"gcs/model"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/viper"
+	"smm/bootstrap"
+	"smm/model"
 )
 
 func init() {

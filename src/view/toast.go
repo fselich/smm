@@ -1,8 +1,8 @@
 package view
 
 import (
-	"gcs/ui"
 	tea "github.com/charmbracelet/bubbletea"
+	"smm/ui"
 	"time"
 )
 

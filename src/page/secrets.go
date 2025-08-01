@@ -2,15 +2,15 @@ package page
 
 import (
 	"fmt"
-	"gcs/editor"
-	gcp2 "gcs/gcp"
-	"gcs/ui"
-	"gcs/view"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/rs/zerolog/log"
 	"golang.design/x/clipboard"
 	"os"
+	"smm/editor"
+	gcp2 "smm/gcp"
+	"smm/ui"
+	"smm/view"
 	"strconv"
 )
 

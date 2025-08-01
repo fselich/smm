@@ -1,10 +1,10 @@
 package editor
 
 import (
-	"gcs/view"
 	tea "github.com/charmbracelet/bubbletea"
 	"os"
 	"os/exec"
+	"smm/view"
 )
 
 type EditFinishedMsg struct {
