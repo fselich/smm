@@ -5,6 +5,7 @@ import (
 	"gcs/page"
 	"gcs/view"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/rs/zerolog/log"
 )
 
 type Page interface {
@@ -28,6 +29,13 @@ func New(projectId string) *Model {
 }
 
 func (m *Model) Init() tea.Cmd {
+	m.setProjectId(m.ProjectId)
+	m.initialize()
+
+	if m.ProjectId == "" {
+		m.page.Update(tea.KeyMsg{Runes: []rune("p"), Type: tea.KeyRunes})
+	}
+
 	return nil
 }
 
@@ -36,12 +44,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case view.ProjectSelectedMessage:
-		var err error
-		m.gcp, err = gcp.NewGcp(msg.ProjectId)
-		if err != nil {
-			return m, nil
-		}
-		m.initialize(false)
+		m.setProjectId(msg.ProjectId)
+		m.initialize()
 		return m, nil
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
@@ -63,15 +67,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 type ShowProjectSelectMsg struct {
 }
 
-func (m *Model) initialize(showProjectSelect bool) {
+func (m *Model) initialize() {
 	var selected page.CurrentSecret
 
 	m.page = page.NewSecrets(m.gcp, selected.Index())
 	m.page.Resize(m.width, m.height)
-
-	if showProjectSelect {
-		m.page.Update(tea.KeyMsg{Runes: []rune("p"), Type: tea.KeyRunes})
-	}
 }
 
 func (m *Model) resize() {
@@ -82,14 +82,21 @@ func (m *Model) resize() {
 
 func (m *Model) View() string {
 	if m.page == nil {
-		if m.ProjectId != "" {
-			m.Update(view.ProjectSelectedMessage{ProjectId: m.ProjectId})
-		} else {
-			m.initialize(true)
-		}
-
 		m.View()
 	}
 
 	return m.page.View()
+}
+
+func (m *Model) setProjectId(projectId string) {
+	m.ProjectId = projectId
+	if projectId == "" {
+		return
+	}
+
+	var err error
+	m.gcp, err = gcp.NewGcp(projectId)
+	if err != nil {
+		log.Fatal().Msgf("Error initializing Gcp: %v", err)
+	}
 }
