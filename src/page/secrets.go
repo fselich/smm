@@ -8,14 +8,14 @@ import (
 	"golang.design/x/clipboard"
 	"os"
 	"smm/editor"
-	gcp2 "smm/gcp"
+	"smm/gcp"
 	"smm/ui"
 	"smm/view"
 	"strconv"
 )
 
 type Secrets struct {
-	gcp        *gcp2.Gcp
+	gcp        *gcp.Gcp
 	components secretsComponents
 	Modal      view.Modal
 	ListWidth  int
@@ -374,7 +374,7 @@ func (s *Secrets) showSecret() tea.Cmd {
 
 }
 
-func NewSecrets(gcp *gcp2.Gcp, selected int) *Secrets {
+func NewSecrets(gcp *gcp.Gcp, selected int) *Secrets {
 	page := &Secrets{gcp: gcp, ListWidth: 31}
 	page.Init()
 	page.Select(selected)
