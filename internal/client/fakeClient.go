@@ -1,6 +1,14 @@
 package client
 
-import "time"
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"github.com/jaswdr/faker/v2"
+	"math/rand"
+	"strings"
+	"time"
+)
 
 type FakeClient struct {
 }
@@ -21,9 +29,34 @@ func (f FakeClient) GetSecretVersions(secretName string) []version {
 	return []version{v}
 }
 
+func (f FakeClient) createEnvSecret() []byte {
+	fk := faker.New()
+	var envLines []string
+
+	numVars := 3 + rand.Intn(10)
+	for i := 0; i < numVars; i++ {
+		key := strings.ToUpper(fk.Lorem().Word()) + fmt.Sprintf("_%d", rand.Intn(1000))
+		value := "\"" + fk.Lorem().Word() + "\""
+		envLines = append(envLines, fmt.Sprintf("%s=%s", key, value))
+	}
+
+	return []byte(strings.Join(envLines, "\n"))
+}
+
+func (f FakeClient) createJsonSecret() []byte {
+	fk := faker.New()
+	js := fk.Json()
+
+	var prettyJSON bytes.Buffer
+	_ = json.Indent(&prettyJSON, []byte(js.String()), "", "  ")
+	return prettyJSON.Bytes()
+}
+
 func (f FakeClient) GetSecret(secretName string) []byte {
-	secret := []byte("Im a fake secret of " + secretName)
-	return secret
+	if rand.Intn(2) == 0 {
+		return f.createEnvSecret()
+	}
+	return f.createJsonSecret()
 }
 
 func (f FakeClient) GetSecretVersion(secretName, version string) []byte {
@@ -43,7 +76,11 @@ func (f FakeClient) SearchInSecrets(query string) []string {
 }
 
 func (f FakeClient) Secrets() []string {
-	secret1 := "secret-1"
-	secret2 := "secret-2"
-	return []string{secret1, secret2}
+	fk := faker.New()
+	secrets := make([]string, 10)
+	for i := 0; i <= 9; i++ {
+		secret := fmt.Sprintf("%s-secret", fk.Lorem().Word())
+		secrets[i] = secret
+	}
+	return secrets
 }
