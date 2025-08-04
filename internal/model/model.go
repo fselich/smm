@@ -3,7 +3,7 @@ package model
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/rs/zerolog/log"
-	"smm/internal/gcp"
+	"smm/internal/client"
 	"smm/internal/page"
 	"smm/internal/view"
 )
@@ -17,7 +17,7 @@ type Page interface {
 
 type Model struct {
 	err       error
-	gcp       *gcp.Gcp
+	gcp       client.Client
 	width     int
 	height    int
 	page      Page
@@ -95,7 +95,7 @@ func (m *Model) setProjectId(projectId string) {
 	}
 
 	var err error
-	m.gcp, err = gcp.NewGcp(projectId)
+	m.gcp, err = client.NewGcp(projectId)
 	if err != nil {
 		log.Fatal().Msgf("Error initializing Gcp: %v", err)
 	}

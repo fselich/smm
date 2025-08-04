@@ -6,7 +6,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"path/filepath"
-	gcp2 "smm/internal/gcp"
+	client "smm/internal/client"
 	"smm/internal/ui"
 	"sort"
 	"time"
@@ -88,7 +88,7 @@ type SecretsList struct {
 	SearchQuery string
 }
 
-func NewSecretsList(width, height int, gcp *gcp2.Gcp) SecretsList {
+func NewSecretsList(width, height int, gcp client.Client) SecretsList {
 	dl := NewListDelegate()
 	dl.Styles.SelectedTitle = ui.StyleSelected()
 	dl.Styles.NormalTitle = ui.StyleUnselected()
@@ -254,7 +254,7 @@ func (sl *SecretsList) ResetFilter() {
 	sl.teaView.ResetFilter()
 }
 
-func (sl *SecretsList) DeepSearch(query string, gcp *gcp2.Gcp) {
+func (sl *SecretsList) DeepSearch(query string, gcp client.Client) {
 
 	var secretList []list.Item
 

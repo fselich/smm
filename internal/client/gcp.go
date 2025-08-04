@@ -1,4 +1,4 @@
-package gcp
+package client
 
 import (
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
@@ -13,7 +13,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 )
 
 type Gcp struct {
@@ -21,14 +20,6 @@ type Gcp struct {
 	ctx       context.Context
 	client    *secretmanager.Client
 	secrets   []string
-}
-
-type version struct {
-	Name      string
-	State     string
-	Version   int
-	FullPath  string
-	CreatedAt time.Time
 }
 
 // NewGcp @todo Manage connection errors

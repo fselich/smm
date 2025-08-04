@@ -7,15 +7,15 @@ import (
 	"github.com/rs/zerolog/log"
 	"golang.design/x/clipboard"
 	"os"
+	"smm/internal/client"
 	"smm/internal/editor"
-	"smm/internal/gcp"
 	"smm/internal/ui"
 	"smm/internal/view"
 	"strconv"
 )
 
 type Secrets struct {
-	gcp        *gcp.Gcp
+	gcp        client.Client
 	components secretsComponents
 	Modal      view.Modal
 	ListWidth  int
@@ -374,7 +374,7 @@ func (s *Secrets) showSecret() tea.Cmd {
 
 }
 
-func NewSecrets(gcp *gcp.Gcp, selected int) *Secrets {
+func NewSecrets(gcp client.Client, selected int) *Secrets {
 	page := &Secrets{gcp: gcp, ListWidth: 31}
 	page.Init()
 	page.Select(selected)
