@@ -6,8 +6,8 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"path/filepath"
-	gcp2 "smm/gcp"
-	"smm/ui"
+	gcp2 "smm/internal/gcp"
+	"smm/internal/ui"
 	"sort"
 	"time"
 )

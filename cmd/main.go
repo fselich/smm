@@ -4,8 +4,8 @@ import (
 	"flag"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/viper"
-	"smm/bootstrap"
-	"smm/model"
+	"smm/internal/bootstrap"
+	"smm/internal/model"
 )
 
 func init() {

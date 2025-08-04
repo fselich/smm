@@ -4,7 +4,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"os"
 	"os/exec"
-	"smm/view"
+	"smm/internal/view"
 )
 
 type EditFinishedMsg struct {

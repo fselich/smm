@@ -6,7 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/muesli/reflow/truncate"
 	"io"
-	"smm/ui"
+	"smm/internal/ui"
 )
 
 type ItemDelegate struct {

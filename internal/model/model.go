@@ -3,9 +3,9 @@ package model
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/rs/zerolog/log"
-	"smm/gcp"
-	"smm/page"
-	"smm/view"
+	"smm/internal/gcp"
+	"smm/internal/page"
+	"smm/internal/view"
 )
 
 type Page interface {

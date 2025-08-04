@@ -2,7 +2,7 @@ package view
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"smm/ui"
+	"smm/internal/ui"
 	"time"
 )
 

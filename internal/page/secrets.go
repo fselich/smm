@@ -7,10 +7,10 @@ import (
 	"github.com/rs/zerolog/log"
 	"golang.design/x/clipboard"
 	"os"
-	"smm/editor"
-	"smm/gcp"
-	"smm/ui"
-	"smm/view"
+	"smm/internal/editor"
+	"smm/internal/gcp"
+	"smm/internal/ui"
+	"smm/internal/view"
 	"strconv"
 )
 
