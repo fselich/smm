@@ -118,10 +118,14 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
-	case view.ProjectSelectedMessage:
-		log.Info().Msgf("Project selected: %v", msg.ProjectId)
-		s.Modal = nil
+	case view.ShowToast:
+		s.components.toast.SetText(msg.Text)
 		return nil
+	case view.ShowProjectSelectMsg:
+		modal := view.NewProjectSelectorModal()
+		modal.SetAlert(msg.TextAlert)
+		s.Modal = modal
+		s.Modal.Init()
 	case view.SearchMessage:
 		s.components.list.DeepSearch(msg.Query, s.gcp)
 		s.Modal = nil

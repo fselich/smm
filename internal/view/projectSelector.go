@@ -11,8 +11,14 @@ type ProjectSelectedMessage struct {
 	ProjectId string
 }
 
+type ShowProjectSelectMsg struct {
+	TextAlert string
+}
+
 type ProjectSelector struct {
-	teaView textinput.Model
+	teaView    textinput.Model
+	alertText  string
+	alertStyle lipgloss.Style
 }
 
 func NewProjectSelectorModal() *ProjectSelector {
@@ -25,7 +31,11 @@ func NewProjectSelectorModal() *ProjectSelector {
 	projectId.CharLimit = 128
 	projectId.Width = 32
 
-	return &ProjectSelector{teaView: projectId}
+	alertStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#FF6B6B")).
+		Bold(true)
+
+	return &ProjectSelector{teaView: projectId, alertStyle: alertStyle}
 }
 
 func (p *ProjectSelector) Init() tea.Cmd {
@@ -70,6 +80,24 @@ func (p *ProjectSelector) Update(msg tea.Msg) (Modal, tea.Cmd) {
 	return p, tea.Batch(cmds...)
 }
 
+func (p *ProjectSelector) SetAlert(text string) {
+	p.alertText = text
+}
+
+func (p *ProjectSelector) ClearAlert() {
+	p.alertText = ""
+}
+
 func (p *ProjectSelector) View() string {
-	return lipgloss.NewStyle().Width(34).Height(1).Render(p.teaView.View())
+	view := p.teaView.View()
+
+	if p.alertText != "" {
+		alertView := p.alertStyle.
+			Width(32).
+			Align(lipgloss.Center).
+			Render(p.alertText)
+		view = lipgloss.JoinVertical(lipgloss.Left, view, alertView)
+	}
+
+	return lipgloss.NewStyle().Width(34).Render(view)
 }

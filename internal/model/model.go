@@ -2,7 +2,6 @@ package model
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/rs/zerolog/log"
 	"smm/internal/client"
 	"smm/internal/page"
 	"smm/internal/view"
@@ -29,10 +28,10 @@ func New(projectId string) *Model {
 }
 
 func (m *Model) Init() tea.Cmd {
-	m.setProjectId(m.ProjectId)
+	err := m.setProjectId(m.ProjectId)
 	m.initialize()
 
-	if m.ProjectId == "" {
+	if m.ProjectId == "" || err != nil {
 		m.page.Update(tea.KeyMsg{Runes: []rune("p"), Type: tea.KeyRunes})
 	}
 
@@ -44,8 +43,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case view.ProjectSelectedMessage:
-		m.setProjectId(msg.ProjectId)
+		err := m.setProjectId(msg.ProjectId)
 		m.initialize()
+
+		if err != nil {
+			m.page.Update(view.ShowProjectSelectMsg{TextAlert: "Error setting project ID"})
+		}
 		return m, nil
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
@@ -62,9 +65,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, nil
-}
-
-type ShowProjectSelectMsg struct {
 }
 
 func (m *Model) initialize() {
@@ -88,15 +88,17 @@ func (m *Model) View() string {
 	return m.page.View()
 }
 
-func (m *Model) setProjectId(projectId string) {
+func (m *Model) setProjectId(projectId string) error {
 	m.ProjectId = projectId
 	if projectId == "" {
-		return
+		return nil
 	}
 
 	var err error
 	m.gcp, err = client.NewGcp(projectId)
 	if err != nil {
-		log.Fatal().Msgf("Error initializing Gcp: %v", err)
+		return err
 	}
+
+	return nil
 }
