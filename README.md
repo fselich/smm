@@ -17,7 +17,7 @@
 ### Desde el código fuente
 
 ```bash
-git clone <repository-url>
+git clone git@github.com:fselich/smm.git
 cd smm
 go build -o smm cmd/main.go
 ```
