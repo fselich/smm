@@ -1,9 +1,10 @@
 package view
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
-	"strings"
 )
 
 type SecretView struct {

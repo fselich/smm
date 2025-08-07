@@ -1,18 +1,19 @@
 package client
 
 import (
-	secretmanager "cloud.google.com/go/secretmanager/apiv1"
-	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
 	"context"
 	"errors"
 	"fmt"
-	"github.com/rs/zerolog/log"
-	"google.golang.org/api/iterator"
 	"hash/crc32"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
+
+	secretmanager "cloud.google.com/go/secretmanager/apiv1"
+	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
+	"github.com/rs/zerolog/log"
+	"google.golang.org/api/iterator"
 )
 
 type Gcp struct {
