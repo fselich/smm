@@ -142,4 +142,4 @@ logPath: "/path/to/log/file"             # Archivo de log (opcional)
 
 ## 📝 Licencia
 
-Este proyecto está bajo la licencia MIT. Ver el archivo `LICENSE` para más detalles.
+Este proyecto está bajo la licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.
