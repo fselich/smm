@@ -64,19 +64,22 @@ func PlaceOverlay(
 	fgHeight := len(fgLines)
 
 	if shadow {
-		var shadowbg string = ""
+		var shadowbg strings.Builder
+		shadowbg.Grow((fgWidth + 2) * (fgHeight + 1)) // Pre-allocate capacity
 		shadowchar := lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#333333")).
 			Render("░")
 		for i := 0; i <= fgHeight; i++ {
+			shadowbg.WriteByte(' ')
 			if i == 0 {
-				shadowbg += " " + strings.Repeat(" ", fgWidth) + "\n"
+				shadowbg.WriteString(strings.Repeat(" ", fgWidth))
 			} else {
-				shadowbg += " " + strings.Repeat(shadowchar, fgWidth) + "\n"
+				shadowbg.WriteString(strings.Repeat(shadowchar, fgWidth))
 			}
+			shadowbg.WriteByte('\n')
 		}
 
-		fg = PlaceOverlay(0, 0, fg, shadowbg, false, opts...)
+		fg = PlaceOverlay(0, 0, fg, shadowbg.String(), false, opts...)
 		fgLines, fgWidth = getLines(fg)
 		fgHeight = len(fgLines)
 	}

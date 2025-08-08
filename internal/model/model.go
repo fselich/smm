@@ -82,7 +82,7 @@ func (m *Model) resize() {
 
 func (m *Model) View() string {
 	if m.page == nil {
-		m.View()
+		return "Error: Application not properly initialized. Please restart."
 	}
 
 	return m.page.View()
