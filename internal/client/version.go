@@ -2,7 +2,7 @@ package client
 
 import "time"
 
-type version struct {
+type Version struct {
 	Name      string
 	State     string
 	Version   int

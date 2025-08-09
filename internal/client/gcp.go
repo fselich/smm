@@ -17,10 +17,10 @@ import (
 )
 
 type Gcp struct {
-	projectID string
-	ctx       context.Context
-	client    *secretmanager.Client
-	secrets   []string
+	projectID   string
+	ctx         context.Context
+	client      *secretmanager.Client
+	secretInfos []SecretInfo
 }
 
 // NewGcp @todo Manage connection errors
@@ -30,7 +30,7 @@ func NewGcp(projectID string) (*Gcp, error) {
 	log.Info().Msgf("Project ID: %s", projectID)
 	gcp := &Gcp{projectID: projectID, ctx: ctx}
 	err := gcp.gcpConnect()
-	gcp.secrets, err = gcp.fetchSecrets()
+	gcp.secretInfos, err = gcp.fetchSecretInfos()
 	return gcp, err
 }
 
@@ -45,39 +45,57 @@ func (g *Gcp) gcpConnect() error {
 	return nil
 }
 
-func (g *Gcp) Secrets() []string {
-	return g.secrets
+func (g *Gcp) Secrets() ([]SecretInfo, error) {
+	if g.secretInfos == nil {
+		secretInfos, err := g.fetchSecretInfos()
+		if err != nil {
+			return nil, err
+		}
+		g.secretInfos = secretInfos
+	}
+	return g.secretInfos, nil
 }
 
-func (g *Gcp) fetchSecrets() ([]string, error) {
+func (g *Gcp) fetchSecretInfos() ([]SecretInfo, error) {
 	listSecretsReq := &secretmanagerpb.ListSecretsRequest{
 		Parent: fmt.Sprintf("projects/%s", g.projectID),
 	}
 
 	listSecrets := g.client.ListSecrets(g.ctx, listSecretsReq)
 
-	var secrets []string
+	var secretInfos []SecretInfo
+
 	for {
-		secret, err := listSecrets.Next()
-		if errors.Is(err, iterator.Done) {
+		secretData, err := listSecrets.Next()
+		if err == iterator.Done {
 			break
 		}
 		if err != nil {
 			return nil, err
 		}
 
-		secrets = append(secrets, secret.Name)
+		name := filepath.Base(secretData.Name)
+
+		secretInfo := SecretInfo{
+			Name:        name,
+			FullPath:    secretData.Name,
+			CreateTime:  secretData.CreateTime.AsTime(),
+			Labels:      secretData.Labels,
+			Annotations: secretData.Annotations,
+		}
+
+		secretInfos = append(secretInfos, secretInfo)
 	}
 
-	return secrets, nil
+	return secretInfos, nil
 }
 
-func (g *Gcp) GetSecretVersions(secretName string) []version {
+func (g *Gcp) GetSecretVersions(secretName string) ([]Version, error) {
 	req := &secretmanagerpb.ListSecretVersionsRequest{
 		Parent: fmt.Sprintf("%s", secretName),
 	}
 
-	var versions []version
+	var versions []Version
 	it := g.client.ListSecretVersions(g.ctx, req)
 	for {
 		resp, err := it.Next()
@@ -86,13 +104,13 @@ func (g *Gcp) GetSecretVersions(secretName string) []version {
 		}
 
 		if err != nil {
-			log.Error().Msgf("failed to list secret versions: %v", err)
+			return nil, fmt.Errorf("failed to list secret versions: %w", err)
 		}
 
 		versionParts := strings.Split(resp.Name, "/")
 		versionNumber, _ := strconv.Atoi(versionParts[len(versionParts)-1])
 
-		version := version{
+		version := Version{
 			Name:      filepath.Base(secretName),
 			FullPath:  secretName,
 			State:     resp.State.String(),
@@ -102,24 +120,23 @@ func (g *Gcp) GetSecretVersions(secretName string) []version {
 		versions = append(versions, version)
 	}
 
-	return versions
+	return versions, nil
 }
 
-func (g *Gcp) GetSecret(secretName string) []byte {
+func (g *Gcp) GetSecret(secretName string) ([]byte, error) {
 	accessRequest := &secretmanagerpb.AccessSecretVersionRequest{
 		Name: fmt.Sprintf("%s/versions/latest", secretName),
 	}
 
 	result, err := g.client.AccessSecretVersion(g.ctx, accessRequest)
 	if err != nil {
-		log.Info().Msgf("failed to access secret version (%s): %v", secretName, err)
-		return nil
+		return nil, fmt.Errorf("failed to access secret version %q: %w", secretName, err)
 	}
 
-	return result.Payload.Data
+	return result.Payload.Data, nil
 }
 
-func (g *Gcp) GetSecretVersion(secretName, version string) []byte {
+func (g *Gcp) GetSecretVersion(secretName, version string) ([]byte, error) {
 	name := fmt.Sprintf("%s/versions/%s", secretName, version)
 	log.Info().Msgf("Fetching secret version: %s", name)
 
@@ -129,16 +146,16 @@ func (g *Gcp) GetSecretVersion(secretName, version string) []byte {
 
 	result, err := g.client.AccessSecretVersion(g.ctx, req)
 	if err != nil {
-		log.Fatal().Msgf("failed to access secret version: %v", err)
+		return nil, fmt.Errorf("failed to access secret version: %w", err)
 	}
 
 	crc32c := crc32.MakeTable(crc32.Castagnoli)
 	checksum := int64(crc32.Checksum(result.Payload.Data, crc32c))
 	if checksum != *result.Payload.DataCrc32C {
-		log.Fatal().Msgf("data corruption detected: expected crc32c of %d but got %d", checksum, *result.Payload.DataCrc32C)
+		return nil, fmt.Errorf("data corruption detected: expected crc32c of %d but got %d", checksum, *result.Payload.DataCrc32C)
 	}
 
-	return result.Payload.Data
+	return result.Payload.Data, nil
 }
 
 func (g *Gcp) AddSecretVersion(secretName string, payload []byte) error {
@@ -163,33 +180,63 @@ func (g *Gcp) AddSecretVersion(secretName string, payload []byte) error {
 	return nil
 }
 
-func (g *Gcp) SearchInSecrets(query string) []string {
-	secrets, _ := g.fetchSecrets()
+func (g *Gcp) SearchInSecrets(query string) ([]SecretInfo, error) {
+	secretInfos, err := g.fetchSecretInfos()
+	if err != nil {
+		return nil, err
+	}
 
-	var foundSecrets []string
+	var foundSecrets []SecretInfo
+	var mu sync.Mutex
 	var wg sync.WaitGroup
-	results := make(chan string, len(secrets))
 
-	for _, secret := range secrets {
+	for _, secretInfo := range secretInfos {
 		wg.Add(1)
-		go func(secret string) {
+		go func(secretInfo SecretInfo) {
 			defer wg.Done()
-			secretData := g.GetSecret(secret)
+			secretData, err := g.GetSecret(secretInfo.FullPath)
+			if err != nil {
+				log.Error().Err(err).Str("secret", secretInfo.FullPath).Msg("failed to get secret during search")
+				return
+			}
 
 			if strings.Contains(string(secretData), query) {
-				results <- secret
+				mu.Lock()
+				foundSecrets = append(foundSecrets, secretInfo)
+				mu.Unlock()
 			}
-		}(secret)
+		}(secretInfo)
 	}
 
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
+	wg.Wait()
+	return foundSecrets, nil
+}
 
-	for secret := range results {
-		foundSecrets = append(foundSecrets, secret)
+func (g *Gcp) GetSecretInfo(fullPath string) (SecretInfo, error) {
+	for _, secretInfo := range g.secretInfos {
+		if secretInfo.FullPath == fullPath {
+			return secretInfo, nil
+		}
 	}
 
-	return foundSecrets
+	req := &secretmanagerpb.GetSecretRequest{
+		Name: fullPath,
+	}
+
+	secret, err := g.client.GetSecret(g.ctx, req)
+	if err != nil {
+		return SecretInfo{}, fmt.Errorf("failed to get secret info: %w", err)
+	}
+
+	name := filepath.Base(secret.Name)
+
+	secretInfo := SecretInfo{
+		Name:        name,
+		FullPath:    secret.Name,
+		CreateTime:  secret.CreateTime.AsTime(),
+		Labels:      secret.Labels,
+		Annotations: secret.Annotations,
+	}
+
+	return secretInfo, nil
 }

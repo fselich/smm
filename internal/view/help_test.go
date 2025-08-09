@@ -73,13 +73,14 @@ func (suite *HelpTestSuite) TestUpdate() {
 func TestKeyMapShortHelp(t *testing.T) {
 	shortHelp := keys.ShortHelp()
 
-	assert.Len(t, shortHelp, 8)
+	assert.Len(t, shortHelp, 9)
 	assert.Contains(t, shortHelp, keys.Filter)
 	assert.Contains(t, shortHelp, keys.Search)
 	assert.Contains(t, shortHelp, keys.Copy)
 	assert.Contains(t, shortHelp, keys.NewVersion)
 	assert.Contains(t, shortHelp, keys.Versions)
 	assert.Contains(t, shortHelp, keys.Restore)
+	assert.Contains(t, shortHelp, keys.Info)
 	assert.Contains(t, shortHelp, keys.ProjectId)
 	assert.Contains(t, shortHelp, keys.Quit)
 }
@@ -89,7 +90,7 @@ func TestKeyMapFullHelp(t *testing.T) {
 
 	assert.Len(t, fullHelp, 3)
 	assert.Len(t, fullHelp[0], 4) // Movement keys
-	assert.Len(t, fullHelp[1], 2) // Action keys
+	assert.Len(t, fullHelp[1], 3) // Action keys (now includes Info)
 	assert.Len(t, fullHelp[2], 2) // Help and quit keys
 }
 
@@ -142,6 +143,9 @@ func TestKeyBindings(t *testing.T) {
 	assert.Equal(t, "v", keys.Versions.Keys()[0])
 	assert.Equal(t, "View Versions", keys.Versions.Help().Desc)
 
+	assert.Equal(t, "i", keys.Info.Keys()[0])
+	assert.Equal(t, "Secret Info", keys.Info.Help().Desc)
+
 	assert.Equal(t, "ctrl+c", keys.Quit.Keys()[0])
 	assert.Equal(t, "quit", keys.Quit.Help().Desc)
 }
@@ -171,6 +175,7 @@ func TestKeyMapStruct(t *testing.T) {
 	assert.NotNil(t, keys.Restore)
 	assert.NotNil(t, keys.ProjectId)
 	assert.NotNil(t, keys.Versions)
+	assert.NotNil(t, keys.Info)
 	assert.NotNil(t, keys.Quit)
 }
 

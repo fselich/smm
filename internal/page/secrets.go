@@ -156,9 +156,14 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 			restoreMessage := msg.Msg.(RestoreSecretMsg)
 			if msg.Result {
 				log.Info().Msgf("Restoring secret %v version %v", restoreMessage.Title, restoreMessage.Version)
-				secretData := s.gcp.GetSecretVersion(restoreMessage.FullPath, strconv.Itoa(restoreMessage.Version))
+				secretData, err := s.gcp.GetSecretVersion(restoreMessage.FullPath, strconv.Itoa(restoreMessage.Version))
+				if err != nil {
+					log.Error().Err(err).Msg("Error getting secret version for restore")
+					s.components.toast.SetText("Error getting secret version")
+					return nil
+				}
 				log.Info().Msg("Restoring secret")
-				err := s.gcp.AddSecretVersion(restoreMessage.Title, secretData)
+				err = s.gcp.AddSecretVersion(restoreMessage.Title, secretData)
 				if err != nil {
 					log.Error().Msgf("Error creating new secret: %v", err)
 					s.components.toast.SetText("Error restoring secret")
@@ -188,9 +193,19 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 					var secretData string
 					if s.components.list.SelectedItem().Type() == "version" {
 						version := s.components.list.SelectedItem().Version()
-						secretData = string(s.gcp.GetSecretVersion(secretName, strconv.Itoa(version)))
+						data, err := s.gcp.GetSecretVersion(secretName, strconv.Itoa(version))
+						if err != nil {
+							log.Error().Err(err).Msg("Error getting secret version")
+							return nil
+						}
+						secretData = string(data)
 					} else {
-						secretData = string(s.gcp.GetSecret(secretName))
+						data, err := s.gcp.GetSecret(secretName)
+						if err != nil {
+							log.Error().Err(err).Msg("Error getting secret")
+							return nil
+						}
+						secretData = string(data)
 					}
 
 					_, err = f.WriteString(secretData)
@@ -222,7 +237,12 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 					if selected.Type() == "current" {
 						deleted := s.components.list.DelVersionItems()
 						if !deleted {
-							versions := s.gcp.GetSecretVersions(selected.FullPath())
+							versions, err := s.gcp.GetSecretVersions(selected.FullPath())
+							if err != nil {
+								log.Error().Err(err).Msg("Error getting secret versions")
+								s.components.toast.SetText("Error getting secret versions")
+								return nil
+							}
 							versions = versions[1:]
 							s.components.toast.SetText(fmt.Sprintf("Secret has %v versions", len(versions)))
 							for i, version := range versions {
@@ -240,9 +260,15 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 						log.Error().Msgf("Error initializing clipboard: %v", err)
 					} else {
 						secretName := s.components.list.SelectedItem().FullPath()
-						secretData := string(s.gcp.GetSecret(secretName))
-						clipboard.Write(clipboard.FmtText, []byte(secretData))
-						s.components.toast.SetText("Secret copied to clipboard")
+						data, err := s.gcp.GetSecret(secretName)
+						if err != nil {
+							log.Error().Err(err).Msg("Error getting secret for clipboard")
+							s.components.toast.SetText("Error getting secret")
+						} else {
+							secretData := string(data)
+							clipboard.Write(clipboard.FmtText, []byte(secretData))
+							s.components.toast.SetText("Secret copied to clipboard")
+						}
 					}
 				case "?":
 					s.Modal = view.NewProjectSelectorModal()
@@ -259,6 +285,20 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 				case "ctrl+f":
 					s.Modal = view.NewSearchForm()
 					s.Modal.Init()
+				case "i":
+					selected := s.components.list.SelectedItem()
+					if selected.FullPath() != "" {
+						secretInfo, err := s.gcp.GetSecretInfo(selected.FullPath())
+						if err != nil {
+							log.Error().Err(err).Msg("Error getting secret info")
+							s.components.toast.SetText("Error getting secret info")
+						} else {
+							s.Modal = view.NewSecretInfoModal(secretInfo)
+							s.Modal.Init()
+						}
+					} else {
+						s.components.toast.SetText("No secret selected")
+					}
 				case "tab":
 					s.components.list.ToggleFocus()
 					s.components.detail.ToggleFocus()
@@ -364,11 +404,19 @@ func (s *Secrets) showSecret() tea.Cmd {
 		var text string
 		text = "loading"
 		if selected.Type() == "version" {
-			versionSecret := s.gcp.GetSecretVersion(selected.FullPath(), strconv.Itoa(selected.Version()))
-			text = ui.SyntaxHighlight(versionSecret)
+			versionSecret, err := s.gcp.GetSecretVersion(selected.FullPath(), strconv.Itoa(selected.Version()))
+			if err != nil {
+				text = "Error loading secret version: " + err.Error()
+			} else {
+				text = ui.SyntaxHighlight(versionSecret)
+			}
 		} else {
-			secretData := s.gcp.GetSecret(selected.FullPath())
-			text = ui.SyntaxHighlight(secretData)
+			secretData, err := s.gcp.GetSecret(selected.FullPath())
+			if err != nil {
+				text = "Error loading secret: " + err.Error()
+			} else {
+				text = ui.SyntaxHighlight(secretData)
+			}
 		}
 		return SecretLoadedMsg{
 			Secret: selected,

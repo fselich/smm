@@ -38,13 +38,13 @@ func isSecretEnvType(secretName string) bool {
 	return rng.IntN(2) == 0
 }
 
-func (f FakeClient) GetSecretVersions(secretName string) []version {
+func (f FakeClient) GetSecretVersions(secretName string) ([]Version, error) {
 	seed := seedFromSecretName(secretName + "_versions")
 	source := rand.NewPCG(uint64(seed), uint64(seed>>32))
 	rng := rand.New(source)
 
 	numVersions := 1 + rng.IntN(5)
-	versions := make([]version, numVersions)
+	versions := make([]Version, numVersions)
 
 	baseTime := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 
@@ -52,7 +52,7 @@ func (f FakeClient) GetSecretVersions(secretName string) []version {
 		versionNum := i + 1
 		timeOffset := time.Duration(rng.Int64N(int64(time.Hour * 24 * 30)))
 
-		versions[i] = version{
+		versions[i] = Version{
 			Name:      fmt.Sprintf("%s-version-%d", secretName, versionNum),
 			State:     "enabled",
 			Version:   versionNum,
@@ -61,7 +61,7 @@ func (f FakeClient) GetSecretVersions(secretName string) []version {
 		}
 	}
 
-	return versions
+	return versions, nil
 }
 
 func (f FakeClient) createEnvSecret(secretName string) []byte {
@@ -93,11 +93,11 @@ func (f FakeClient) createJsonSecret(secretName string) []byte {
 	return prettyJSON.Bytes()
 }
 
-func (f FakeClient) GetSecret(secretName string) []byte {
+func (f FakeClient) GetSecret(secretName string) ([]byte, error) {
 	if isSecretEnvType(secretName) {
-		return f.createEnvSecret(secretName)
+		return f.createEnvSecret(secretName), nil
 	}
-	return f.createJsonSecret(secretName)
+	return f.createJsonSecret(secretName), nil
 }
 
 func (f FakeClient) createEnvSecretVersion(secretName, version string) []byte {
@@ -127,43 +127,114 @@ func (f FakeClient) createJsonSecretVersion(secretName, version string) []byte {
 	return prettyJSON.Bytes()
 }
 
-func (f FakeClient) GetSecretVersion(secretName, version string) []byte {
+func (f FakeClient) GetSecretVersion(secretName, version string) ([]byte, error) {
 	if isSecretEnvType(secretName) {
-		return f.createEnvSecretVersion(secretName, version)
+		return f.createEnvSecretVersion(secretName, version), nil
 	}
-	return f.createJsonSecretVersion(secretName, version)
+	return f.createJsonSecretVersion(secretName, version), nil
 }
 
 func (f FakeClient) AddSecretVersion(secretName string, payload []byte) error {
 	return nil
 }
 
-func (f FakeClient) SearchInSecrets(query string) []string {
+func (f FakeClient) SearchInSecrets(query string) ([]SecretInfo, error) {
 	seed := seedFromSecretName("search_" + query)
 	source := rand.NewPCG(uint64(seed), uint64(seed>>32))
 	rng := rand.New(source)
 	fk := faker.NewWithSeed(source)
 
 	numResults := 2 + rng.IntN(5)
-	results := make([]string, numResults)
+	results := make([]SecretInfo, numResults)
+
+	baseTime := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 
 	for i := 0; i < numResults; i++ {
 		secretName := fmt.Sprintf("%s-%s-secret", query, fk.Lorem().Word())
-		results[i] = secretName
+		timeOffset := time.Duration(rng.Int64N(int64(time.Hour * 24 * 365)))
+		
+		results[i] = SecretInfo{
+			Name:        secretName,
+			FullPath:    fmt.Sprintf("projects/test-project/secrets/%s", secretName),
+			CreateTime:  baseTime.Add(timeOffset),
+			Labels:      map[string]string{"environment": "test", "type": "search-result"},
+			Annotations: map[string]string{"description": fmt.Sprintf("Search result for: %s", query)},
+		}
 	}
 
-	return results
+	return results, nil
 }
 
-func (f FakeClient) Secrets() []string {
+func (f FakeClient) Secrets() ([]SecretInfo, error) {
 	seed := int64(12345)
 	source := rand.NewPCG(uint64(seed), uint64(seed>>32))
+	rng := rand.New(source)
 	fk := faker.NewWithSeed(source)
 
-	secrets := make([]string, 30)
+	secrets := make([]SecretInfo, 30)
+	baseTime := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+
 	for i := 0; i <= 29; i++ {
-		secret := fmt.Sprintf("%s-secret", fk.Lorem().Word())
-		secrets[i] = secret
+		secretName := fmt.Sprintf("%s-secret", fk.Lorem().Word())
+		timeOffset := time.Duration(rng.Int64N(int64(time.Hour * 24 * 365)))
+		
+		secrets[i] = SecretInfo{
+			Name:        secretName,
+			FullPath:    fmt.Sprintf("projects/test-project/secrets/%s", secretName),
+			CreateTime:  baseTime.Add(timeOffset),
+			Labels:      map[string]string{"environment": "test", "team": fk.Company().Name()},
+			Annotations: map[string]string{"description": fk.Lorem().Sentence(5)},
+		}
 	}
-	return secrets
+	return secrets, nil
+}
+
+func (f FakeClient) GetSecretInfo(fullPath string) (SecretInfo, error) {
+	// Extract secret name from full path
+	parts := strings.Split(fullPath, "/")
+	if len(parts) < 4 {
+		return SecretInfo{}, fmt.Errorf("invalid secret path: %s", fullPath)
+	}
+	secretName := parts[len(parts)-1]
+	
+	seed := seedFromSecretName(fullPath)
+	source := rand.NewPCG(uint64(seed), uint64(seed>>32))
+	rng := rand.New(source)
+	fk := faker.NewWithSeed(source)
+	
+	baseTime := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+	timeOffset := time.Duration(rng.Int64N(int64(time.Hour * 24 * 365)))
+	
+	labels := map[string]string{
+		"environment": "test",
+		"team":        fk.Company().Name(),
+	}
+	
+	// Add some random labels
+	if rng.IntN(2) == 0 {
+		labels["type"] = "api-key"
+	}
+	if rng.IntN(2) == 0 {
+		labels["region"] = "us-central1"
+	}
+	
+	annotations := map[string]string{
+		"description": fk.Lorem().Sentence(5),
+	}
+	
+	// Add some random annotations
+	if rng.IntN(2) == 0 {
+		annotations["owner"] = fk.Person().Name()
+	}
+	if rng.IntN(2) == 0 {
+		annotations["last-rotated"] = time.Now().AddDate(0, -rng.IntN(12), -rng.IntN(30)).Format("2006-01-02")
+	}
+	
+	return SecretInfo{
+		Name:        secretName,
+		FullPath:    fullPath,
+		CreateTime:  baseTime.Add(timeOffset),
+		Labels:      labels,
+		Annotations: annotations,
+	}, nil
 }

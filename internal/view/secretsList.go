@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/rs/zerolog/log"
 	"path/filepath"
 	client "smm/internal/client"
 	"smm/internal/ui"
@@ -106,8 +107,13 @@ func NewSecretsList(width, height int, gcp client.Client) SecretsList {
 	var secretList []list.Item
 
 	if gcp != nil {
-		for _, secret := range gcp.Secrets() {
-			secretList = append(secretList, NewSecret(filepath.Base(secret), secret, "current", 0, time.Now()))
+		secretInfos, err := gcp.Secrets()
+		if err != nil {
+			log.Error().Err(err).Msg("failed to fetch secrets")
+		} else {
+			for _, secretInfo := range secretInfos {
+				secretList = append(secretList, NewSecret(secretInfo.Name, secretInfo.FullPath, "current", 0, secretInfo.CreateTime))
+			}
 		}
 	}
 
@@ -259,12 +265,22 @@ func (sl *SecretsList) DeepSearch(query string, gcp client.Client) {
 	var secretList []list.Item
 
 	if query == "" {
-		for _, secret := range gcp.Secrets() {
-			secretList = append(secretList, NewSecret(filepath.Base(secret), secret, "current", 0, time.Now()))
+		secretInfos, err := gcp.Secrets()
+		if err != nil {
+			log.Error().Err(err).Msg("failed to fetch secrets")
+			return
+		}
+		for _, secretInfo := range secretInfos {
+			secretList = append(secretList, NewSecret(secretInfo.Name, secretInfo.FullPath, "current", 0, secretInfo.CreateTime))
 		}
 	} else {
-		for _, secret := range gcp.SearchInSecrets(query) {
-			secretList = append(secretList, NewSecret(filepath.Base(secret), secret, "current", 0, time.Now()))
+		searchResults, err := gcp.SearchInSecrets(query)
+		if err != nil {
+			log.Error().Err(err).Msg("failed to search secrets")
+			return
+		}
+		for _, secretInfo := range searchResults {
+			secretList = append(secretList, NewSecret(secretInfo.Name, secretInfo.FullPath, "current", 0, secretInfo.CreateTime))
 		}
 	}
 
