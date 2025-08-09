@@ -293,7 +293,7 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 							log.Error().Err(err).Msg("Error getting secret info")
 							s.components.toast.SetText("Error getting secret info")
 						} else {
-							s.Modal = view.NewSecretInfoModal(secretInfo)
+							s.Modal = view.NewSecretInfoModal(secretInfo, selected)
 							s.Modal.Init()
 						}
 					} else {
@@ -336,12 +336,7 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 			switch msg.String() {
 			case "esc":
 				s.Modal = nil
-				s.Init()
-				resizeCmd := func() tea.Msg {
-					return view.ResizeMessage{}
-				}
-				cmds = append(cmds, resizeCmd)
-				return tea.Batch(cmds...)
+				return nil
 			}
 		}
 

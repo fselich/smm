@@ -14,6 +14,7 @@ type SecretInfoModalTestSuite struct {
 	suite.Suite
 	modal      *SecretInfoModal
 	secretInfo client.SecretInfo
+	testSecret Secret
 }
 
 func (suite *SecretInfoModalTestSuite) SetupTest() {
@@ -30,7 +31,8 @@ func (suite *SecretInfoModalTestSuite) SetupTest() {
 			"owner":       "test-user",
 		},
 	}
-	suite.modal = NewSecretInfoModal(suite.secretInfo)
+	suite.testSecret = NewSecret("test-secret", "projects/test-project/secrets/test-secret", "current", 1, time.Date(2024, 1, 15, 12, 30, 0, 0, time.UTC))
+	suite.modal = NewSecretInfoModal(suite.secretInfo, suite.testSecret)
 }
 
 func TestSecretInfoModalSuite(t *testing.T) {
@@ -39,7 +41,8 @@ func TestSecretInfoModalSuite(t *testing.T) {
 
 func (suite *SecretInfoModalTestSuite) TestNewSecretInfoModal() {
 	t := suite.T()
-	modal := NewSecretInfoModal(suite.secretInfo)
+	testSecret := NewSecret("test-secret", "projects/test-project/secrets/test-secret", "current", 1, time.Date(2024, 1, 15, 12, 30, 0, 0, time.UTC))
+	modal := NewSecretInfoModal(suite.secretInfo, testSecret)
 
 	assert.NotNil(t, modal)
 	assert.Equal(t, suite.secretInfo, modal.secretInfo)
@@ -56,9 +59,9 @@ func (suite *SecretInfoModalTestSuite) TestInit() {
 func (suite *SecretInfoModalTestSuite) TestUpdateEscapeKey() {
 	t := suite.T()
 	keyMsg := tea.KeyMsg{Type: tea.KeyEsc}
-	
+
 	modal, cmd := suite.modal.Update(keyMsg)
-	
+
 	assert.NotNil(t, modal)
 	assert.Nil(t, cmd)
 }
@@ -66,9 +69,9 @@ func (suite *SecretInfoModalTestSuite) TestUpdateEscapeKey() {
 func (suite *SecretInfoModalTestSuite) TestUpdateQKey() {
 	t := suite.T()
 	keyMsg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}}
-	
+
 	modal, cmd := suite.modal.Update(keyMsg)
-	
+
 	assert.NotNil(t, modal)
 	assert.Nil(t, cmd)
 }
@@ -76,9 +79,9 @@ func (suite *SecretInfoModalTestSuite) TestUpdateQKey() {
 func (suite *SecretInfoModalTestSuite) TestUpdateWindowSize() {
 	t := suite.T()
 	windowMsg := tea.WindowSizeMsg{Width: 100, Height: 50}
-	
+
 	modal, cmd := suite.modal.Update(windowMsg)
-	
+
 	assert.NotNil(t, modal)
 	assert.Nil(t, cmd)
 	assert.Equal(t, 100, modal.(*SecretInfoModal).width)
@@ -88,9 +91,9 @@ func (suite *SecretInfoModalTestSuite) TestUpdateWindowSize() {
 func (suite *SecretInfoModalTestSuite) TestView() {
 	t := suite.T()
 	view := suite.modal.View()
-	
+
 	assert.NotEmpty(t, view)
-	
+
 	// Check that the view contains expected content
 	assert.Contains(t, view, "Secret Information")
 	assert.Contains(t, view, "test-secret")
@@ -114,10 +117,11 @@ func (suite *SecretInfoModalTestSuite) TestViewWithEmptyLabelsAndAnnotations() {
 		Labels:      map[string]string{},
 		Annotations: map[string]string{},
 	}
-	
-	modal := NewSecretInfoModal(emptySecretInfo)
+
+	testSecret := NewSecret("empty-secret", "projects/test-project/secrets/empty-secret", "current", 1, time.Date(2024, 1, 15, 12, 30, 0, 0, time.UTC))
+	modal := NewSecretInfoModal(emptySecretInfo, testSecret)
 	view := modal.View()
-	
+
 	assert.NotEmpty(t, view)
 	assert.Contains(t, view, "empty-secret")
 	assert.NotContains(t, view, "Labels:")
@@ -127,30 +131,32 @@ func (suite *SecretInfoModalTestSuite) TestViewWithEmptyLabelsAndAnnotations() {
 func (suite *SecretInfoModalTestSuite) TestViewAgeDisplay() {
 	t := suite.T()
 	now := time.Now()
-	
+
 	// Test recent secret (minutes ago)
 	recentSecret := client.SecretInfo{
-		Name:       "recent-secret",
-		FullPath:   "projects/test-project/secrets/recent-secret",
-		CreateTime: now.Add(-30 * time.Minute),
-		Labels:     map[string]string{},
+		Name:        "recent-secret",
+		FullPath:    "projects/test-project/secrets/recent-secret",
+		CreateTime:  now.Add(-30 * time.Minute),
+		Labels:      map[string]string{},
 		Annotations: map[string]string{},
 	}
-	
-	modal := NewSecretInfoModal(recentSecret)
+
+	testSecretRecent := NewSecret("recent-secret", "projects/test-project/secrets/recent-secret", "current", 1, now.Add(-30*time.Minute))
+	modal := NewSecretInfoModal(recentSecret, testSecretRecent)
 	view := modal.View()
 	assert.Contains(t, view, "minutes ago")
-	
+
 	// Test old secret (days ago)
 	oldSecret := client.SecretInfo{
-		Name:       "old-secret", 
-		FullPath:   "projects/test-project/secrets/old-secret",
-		CreateTime: now.Add(-5 * 24 * time.Hour),
-		Labels:     map[string]string{},
+		Name:        "old-secret",
+		FullPath:    "projects/test-project/secrets/old-secret",
+		CreateTime:  now.Add(-5 * 24 * time.Hour),
+		Labels:      map[string]string{},
 		Annotations: map[string]string{},
 	}
-	
-	modal = NewSecretInfoModal(oldSecret)
+
+	testSecretOld := NewSecret("old-secret", "projects/test-project/secrets/old-secret", "current", 1, now.Add(-5*24*time.Hour))
+	modal = NewSecretInfoModal(oldSecret, testSecretOld)
 	view = modal.View()
 	assert.Contains(t, view, "5 days ago")
 }
@@ -160,8 +166,9 @@ func TestSecretInfoModalImplementsModal(t *testing.T) {
 		Name:     "test",
 		FullPath: "projects/test/secrets/test",
 	}
-	modal := NewSecretInfoModal(secretInfo)
-	
+	testSecret := NewSecret("test", "projects/test/secrets/test", "current", 1, time.Now())
+	modal := NewSecretInfoModal(secretInfo, testSecret)
+
 	// Ensure it implements the Modal interface
 	var _ Modal = modal
 }
