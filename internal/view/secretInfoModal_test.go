@@ -102,7 +102,7 @@ func (suite *SecretInfoModalTestSuite) TestView() {
 	assert.Contains(t, view, "team: engineering")
 	assert.Contains(t, view, "description: Test secret for unit testing")
 	assert.Contains(t, view, "owner: test-user")
-	assert.Contains(t, view, "Press ESC or q to close")
+	assert.Contains(t, view, "Press ESC to close")
 }
 
 func (suite *SecretInfoModalTestSuite) TestViewWithEmptyLabelsAndAnnotations() {
