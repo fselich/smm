@@ -57,6 +57,7 @@ go build -o smm cmd/main.go
 ### Secret Management
 | Key         | Action                                                     |
 | ----------- | ---------------------------------------------------------- |
+| `i`         | Show secret information (metadata, creation date, labels) |
 | `c`         | Copy secret to clipboard                                   |
 | `n`         | Create new version of secret                               |
 | `v`         | Show/hide secret versions                                  |

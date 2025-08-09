@@ -56,6 +56,7 @@ go build -o smm cmd/main.go
 ### Gestión de Secretos
 | Tecla       | Acción                                                     |
 | ----------- | ---------------------------------------------------------- |
+| `i`         | Mostrar información del secreto (metadatos, fecha de creación, etiquetas) |
 | `c`         | Copiar secreto al portapapeles                             |
 | `n`         | Crear nueva versión del secreto                            |
 | `v`         | Mostrar/ocultar versiones del secreto                      |
