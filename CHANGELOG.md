@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.4] - 2025-08-10
+
+### Improved
+- Enhanced secret info modal with better layout and information display
+- Updated documentation (README files)
+
 ## [0.1.3] - 2025-08-09
 
 ### Added

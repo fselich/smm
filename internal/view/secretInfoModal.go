@@ -85,9 +85,11 @@ func (s *SecretInfoModal) View() string {
 	sections = append(sections, "")
 	sections = append(sections, s.buildSecretInfoSection(styles)...)
 
-	// Build version info section
-	sections = append(sections, "")
-	sections = append(sections, s.buildVersionInfoSection(styles)...)
+	// Build version info section only for version items, not current
+	if s.selectedItem.Type() == "version" {
+		sections = append(sections, "")
+		sections = append(sections, s.buildVersionInfoSection(styles)...)
+	}
 
 	// Build footer
 	sections = append(sections, "")
