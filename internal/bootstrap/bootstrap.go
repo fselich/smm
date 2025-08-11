@@ -3,42 +3,16 @@ package bootstrap
 import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"os"
-	"path/filepath"
+	"smm/internal/config"
 )
 
 func LoadConfig() {
-	configPath := filepath.Join(os.Getenv("HOME"), ".config", "smm")
-	configFile := filepath.Join(configPath, "config.yaml")
-
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		err = os.MkdirAll(configPath, 0755)
-		if err != nil {
-			log.Fatal().Err(err).Msg("Error creating config directory")
-		}
-	}
-
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(configPath)
-	viper.SetDefault("projectIds", []string{})
-
-	if _, err := os.Stat(configFile); os.IsNotExist(err) {
-		err = viper.WriteConfigAs(configFile)
-		if err != nil {
-			log.Fatal().Err(err).Msg("Error writing config file")
-		}
-	} else {
-		err = viper.ReadInConfig()
-		if err != nil {
-			log.Fatal().Err(err).Msg("Error reading config file")
-		}
-	}
+	config.Load()
 }
 
 func SetLog() {
-	logPath := viper.GetString("logPath")
+	logPath := config.GetLogPath()
 
 	if logPath == "" {
 		log.Logger = log.Logger.Level(zerolog.Disabled)

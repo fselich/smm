@@ -1,10 +1,12 @@
 package model
 
 import (
-	tea "github.com/charmbracelet/bubbletea"
 	"smm/internal/client"
+	"smm/internal/config"
 	"smm/internal/page"
 	"smm/internal/view"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 type Page interface {
@@ -95,7 +97,12 @@ func (m *Model) setProjectId(projectId string) error {
 	}
 
 	var err error
-	m.gcp, err = client.NewGcp(projectId)
+	projectType := config.GetTypeByProjectId(projectId)
+	if projectType == "gcp" {
+		m.gcp, err = client.NewGcp(projectId)
+	} else {
+		m.gcp, err = client.NewFakeClient(projectId)
+	}
 	if err != nil {
 		return err
 	}

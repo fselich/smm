@@ -4,7 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/spf13/viper"
+	"smm/internal/config"
 )
 
 type ProjectSelectedMessage struct {
@@ -25,7 +25,7 @@ func NewProjectSelectorModal() *ProjectSelector {
 	projectId := textinput.New()
 	projectId.Prompt = "Project ID: "
 	projectId.ShowSuggestions = true
-	projectId.SetSuggestions(viper.GetStringSlice("projectids"))
+	projectId.SetSuggestions(config.GetProjectIDs())
 	projectId.Placeholder = ""
 	projectId.Focus()
 	projectId.CharLimit = 128
@@ -54,19 +54,9 @@ func (p *ProjectSelector) Update(msg tea.Msg) (Modal, tea.Cmd) {
 		switch msg.Type {
 		case tea.KeyEnter:
 
-			uniqueProjectIds := make(map[string]struct{})
-			for _, id := range append(viper.GetStringSlice("projectIds"), p.teaView.Value()) {
-				uniqueProjectIds[id] = struct{}{}
-			}
-
-			projectIds := make([]string, 0, len(uniqueProjectIds))
-			for id := range uniqueProjectIds {
-				projectIds = append(projectIds, id)
-			}
-
-			viper.Set("selected", p.teaView.Value())
-			viper.Set("projectIds", projectIds)
-			_ = viper.WriteConfig()
+			config.SetSelectedProject(p.teaView.Value())
+			config.AddProjectID(p.teaView.Value())
+			_ = config.Save()
 
 			cmd = func() tea.Msg {
 				return ProjectSelectedMessage{p.teaView.Value()}

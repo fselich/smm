@@ -2,10 +2,11 @@ package main
 
 import (
 	"flag"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/spf13/viper"
 	"smm/internal/bootstrap"
+	"smm/internal/config"
 	"smm/internal/model"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 func init() {
@@ -19,7 +20,7 @@ func main() {
 
 	projectId := *projectIdFlag
 	if projectId == "" {
-		projectId = viper.GetString("selected")
+		projectId = config.GetSelectedProjectId()
 	}
 
 	p := tea.NewProgram(model.New(projectId), tea.WithAltScreen())
