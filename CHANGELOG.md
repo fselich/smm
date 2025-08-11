@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.6] - 2025-08-11
+
+### Changed
+- Replaced viper dependency with internal config package
+- Refactored configuration management for better maintainability
+
 ## [0.1.5] - 2025-08-11
 
 ### Changed
