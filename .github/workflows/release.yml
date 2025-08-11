@@ -34,14 +34,11 @@ jobs:
         # Create dist directory
         mkdir -p dist
         
-        # Build for multiple platforms
+        # Build for Linux platforms only
         GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o dist/smm-linux-amd64 cmd/main.go
         GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o dist/smm-linux-arm64 cmd/main.go
-        GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o dist/smm-darwin-amd64 cmd/main.go
-        GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o dist/smm-darwin-arm64 cmd/main.go
-        GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o dist/smm-windows-amd64.exe cmd/main.go
         
-        # Make binaries executable (except Windows)
+        # Make binaries executable
         chmod +x dist/smm-*
         
         # Create checksums
@@ -60,13 +57,10 @@ jobs:
           
           ## Installation
           
-          Download the appropriate binary for your platform:
+          Download the appropriate binary for your Linux platform:
           
           - **Linux (x64)**: `smm-linux-amd64`
-          - **Linux (ARM64)**: `smm-linux-arm64` 
-          - **macOS (Intel)**: `smm-darwin-amd64`
-          - **macOS (Apple Silicon)**: `smm-darwin-arm64`
-          - **Windows (x64)**: `smm-windows-amd64.exe`
+          - **Linux (ARM64)**: `smm-linux-arm64`
           
           Make the binary executable and optionally rename it:
           ```bash
