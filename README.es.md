@@ -151,13 +151,24 @@ SMM detecta automáticamente el formato del contenido y aplica coloreado de sint
 
 ## 📁 Configuración
 
-La aplicación almacena su configuración en `~/.config/smm/config.yaml`:
+La aplicación almacena su configuración en `~/.config/smm/config.yaml`. **El archivo de configuración se crea automáticamente si no existe** cuando ejecutas SMM por primera vez.
+
+Estructura de configuración:
 
 ```yaml
-projectIds: ["proyecto-1", "proyecto-2"]  # Proyectos disponibles
-selected: "proyecto-1"                    # Proyecto seleccionado
-logPath: "/path/to/log/file"             # Archivo de log (opcional)
+projects:                               # Lista de proyectos GCP
+  - id: "mi-proyecto-gcp-1"
+    type: "gcp"
+  - id: "mi-proyecto-gcp-2"
+    type: "gcp"  
+selected: "mi-proyecto-gcp-1"            # Proyecto actualmente seleccionado
+logPath: "/ruta/al/archivo/log"          # Ruta del archivo de log (opcional)
 ```
+
+**Notas:**
+- Los proyectos se añaden automáticamente cuando cambias a ellos usando la tecla `p`
+- El campo `selected` recuerda tu último proyecto usado
+- `logPath` es opcional - déjalo vacío para deshabilitar el logging
 
 ## 🤝 Contribuir
 

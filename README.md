@@ -151,13 +151,24 @@ SMM automatically detects content format and applies syntax highlighting for:
 
 ## 📁 Configuration
 
-The application stores its configuration in `~/.config/smm/config.yaml`:
+The application stores its configuration in `~/.config/smm/config.yaml`. **The configuration file is created automatically if it doesn't exist** when you first run SMM.
+
+Configuration structure:
 
 ```yaml
-projectIds: ["project-1", "project-2"]  # Available projects
-selected: "project-1"                   # Selected project
-logPath: "/path/to/log/file"            # Log file (optional)
+projects:                               # List of GCP projects
+  - id: "my-gcp-project-1"
+    type: "gcp"
+  - id: "my-gcp-project-2"  
+    type: "gcp"
+selected: "my-gcp-project-1"            # Currently selected project
+logPath: "/path/to/log/file"            # Log file path (optional)
 ```
+
+**Notes:**
+- Projects are automatically added when you switch to them using the `p` key
+- The `selected` field remembers your last used project  
+- `logPath` is optional - leave empty to disable logging
 
 ## 🤝 Contributing
 
