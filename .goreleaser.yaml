@@ -1,5 +1,5 @@
 project_name: smm
-version: 1
+version: 2
 
 before:
   hooks:
@@ -57,6 +57,7 @@ brews:
     repository:
       owner: fselich
       name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
     install: |
       bin.install "smm"
     test: |
