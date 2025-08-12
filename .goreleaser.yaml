@@ -48,5 +48,19 @@ release:
   prerelease: auto
   mode: replace
 
+brews:
+  - 
+    name: smm
+    homepage: https://github.com/fselich/smm
+    description: "Terminal User Interface for Google Cloud Platform secret management"
+    license: MIT
+    repository:
+      owner: fselich
+      name: homebrew-tap
+    install: |
+      bin.install "smm"
+    test: |
+      system "#{bin}/smm", "--help"
+
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
