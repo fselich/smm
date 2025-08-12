@@ -16,6 +16,33 @@
 
 ## 📦 Instalación
 
+### Homebrew (Recomendado)
+
+```bash
+brew tap fselich/tap
+brew install smm
+```
+
+### Descargar Binario
+
+Descarga la última versión para tu plataforma desde [GitHub Releases](https://github.com/fselich/smm/releases):
+
+#### Linux x64
+```bash
+wget https://github.com/fselich/smm/releases/latest/download/smm-linux-amd64.tar.gz
+tar -xzf smm-linux-amd64.tar.gz
+chmod +x smm
+sudo mv smm /usr/local/bin/  # Opcional: instalar en el sistema
+```
+
+#### Linux ARM64
+```bash
+wget https://github.com/fselich/smm/releases/latest/download/smm-linux-arm64.tar.gz
+tar -xzf smm-linux-arm64.tar.gz
+chmod +x smm
+sudo mv smm /usr/local/bin/  # Opcional: instalar en el sistema
+```
+
 ### Desde el código fuente
 
 #### Requisitos previos
