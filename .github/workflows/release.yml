@@ -22,6 +22,20 @@ jobs:
       with:
         go-version: '1.24'
 
+    - name: Debug token status
+      run: |
+        echo "GITHUB_TOKEN length: ${#GITHUB_TOKEN}"
+        echo "HOMEBREW_TAP_TOKEN length: ${#HOMEBREW_TAP_TOKEN}"
+        if [ -z "$HOMEBREW_TAP_TOKEN" ]; then
+          echo "ERROR: HOMEBREW_TAP_TOKEN is empty!"
+        else
+          echo "HOMEBREW_TAP_TOKEN is set (length: ${#HOMEBREW_TAP_TOKEN})"
+          echo "Token starts with: ${HOMEBREW_TAP_TOKEN:0:4}..."
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v6
       with:
