@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.11] - 2025-08-12
+
+### Added
+- Version flag (-v) to display version
+
 ## [0.1.7] - 2025-08-12
 
 ### Changed
