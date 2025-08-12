@@ -1,0 +1,52 @@
+project_name: smm
+version: 1
+
+before:
+  hooks:
+    - go mod tidy
+    - go test -v ./...
+
+builds:
+  - 
+    id: smm-linux
+    main: ./cmd/main.go
+    binary: smm
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+    env:
+      - CGO_ENABLED=0
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
+archives:
+  - 
+    id: smm-archive
+    builds: [smm-linux]
+    name_template: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
+    format: tar.gz
+    files:
+      - LICENSE
+      - README.md
+      - README.es.md
+      - CHANGELOG.md
+    wrap_in_directory: false
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+release:
+  github:
+    owner: fselich
+    name: smm
+  name_template: "v{{ .Version }}"
+  draft: false
+  prerelease: auto
+  mode: replace
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
