@@ -22,7 +22,6 @@
 - [Go](https://go.dev/doc/install) (version 1.24.4 or higher)
 - [Git](https://git-scm.com/book/en/v2/Getting-Started)
 - [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) (gcloud)
-- libx11-dev for clipboard support on Linux (`sudo apt-get install libx11-dev` or similar)
 
 #### Clone repository and build
 ```bash

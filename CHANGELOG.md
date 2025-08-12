@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.7] - 2025-08-12
+
+### Changed
+- Replaced clipboard dependency for better cross-platform compatibility
+
 ## [0.1.6] - 2025-08-11
 
 ### Changed

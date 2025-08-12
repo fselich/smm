@@ -5,7 +5,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/rs/zerolog/log"
-	"golang.design/x/clipboard"
+	"github.com/tiagomelo/go-clipboard/clipboard"
 	"os"
 	"smm/internal/client"
 	"smm/internal/editor"
@@ -255,18 +255,19 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 					s.components.list.Select(selected.Index())
 					return cmd
 				case "c":
-					err := clipboard.Init()
+					secretName := s.components.list.SelectedItem().FullPath()
+					data, err := s.gcp.GetSecret(secretName)
 					if err != nil {
-						log.Error().Msgf("Error initializing clipboard: %v", err)
+						log.Error().Err(err).Msg("Error getting secret for clipboard")
+						s.components.toast.SetText("Error getting secret")
 					} else {
-						secretName := s.components.list.SelectedItem().FullPath()
-						data, err := s.gcp.GetSecret(secretName)
+						secretData := string(data)
+						c := clipboard.New()
+						err = c.CopyText(secretData)
 						if err != nil {
-							log.Error().Err(err).Msg("Error getting secret for clipboard")
-							s.components.toast.SetText("Error getting secret")
+							log.Error().Err(err).Msg("Error copying to clipboard")
+							s.components.toast.SetText("Failed to copy to clipboard")
 						} else {
-							secretData := string(data)
-							clipboard.Write(clipboard.FmtText, []byte(secretData))
 							s.components.toast.SetText("Secret copied to clipboard")
 						}
 					}

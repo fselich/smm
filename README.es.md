@@ -22,7 +22,6 @@
 - [Go](https://go.dev/doc/install) (versión 1.24.4 o superior)
 - [Git](https://git-scm.com/book/en/v2/Getting-Started)
 - [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) (gcloud)
-- libx11-dev para soporte del portapapeles en Linux (`sudo apt-get install libx11-dev` o similar)
 
 #### Clonar el repositorio y compilar
 ```bash
