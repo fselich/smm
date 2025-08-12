@@ -10,8 +10,8 @@ import (
 )
 
 func init() {
-	bootstrap.SetLog()
 	bootstrap.LoadConfig()
+	bootstrap.SetLog()
 }
 
 func main() {
