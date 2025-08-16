@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.12] - 2025-08-16
+
+### Changed
+- Use context with cancel in GCP instance for better resource management
+
+### Fixed  
+- Improved security in written files and directories
+
 ## [0.1.11] - 2025-08-12
 
 ### Added
