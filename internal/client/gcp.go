@@ -21,17 +21,20 @@ type Gcp struct {
 	ctx         context.Context
 	client      *secretmanager.Client
 	secretInfos []SecretInfo
+	cancel      context.CancelFunc
 }
 
-// NewGcp @todo Manage connection errors
 func NewGcp(projectID string) (*Gcp, error) {
-	ctx := context.Background()
-	log.Info().Msg("Connecting to GCP")
-	log.Info().Msgf("Project ID: %s", projectID)
-	gcp := &Gcp{projectID: projectID, ctx: ctx}
+	ctx, cancel := context.WithCancel(context.Background())
+	gcp := &Gcp{projectID: projectID, ctx: ctx, cancel: cancel}
 	err := gcp.gcpConnect()
+	if err != nil {
+		cancel()
+		return nil, fmt.Errorf("failed to connect to GCP Secret Manager: %w", err)
+	}
+
 	gcp.secretInfos, err = gcp.fetchSecretInfos()
-	return gcp, err
+	return gcp, nil
 }
 
 func (g *Gcp) gcpConnect() error {
