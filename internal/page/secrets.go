@@ -2,16 +2,18 @@ package page
 
 import (
 	"fmt"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
-	"github.com/rs/zerolog/log"
-	"github.com/tiagomelo/go-clipboard/clipboard"
 	"os"
+	"path/filepath"
 	"smm/internal/client"
 	"smm/internal/editor"
 	"smm/internal/ui"
 	"smm/internal/view"
 	"strconv"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/rs/zerolog/log"
+	"github.com/tiagomelo/go-clipboard/clipboard"
 )
 
 type Secrets struct {
@@ -182,9 +184,13 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 			if s.components.list.IsFiltering() == false && s.components.detail.IsFiltering == false {
 				switch msg.String() {
 				case "n":
-					f, err := os.Create("/tmp/" + s.components.list.SelectedItem().Hash())
+					tempDir := os.TempDir()
+					hash := s.components.list.SelectedItem().Hash()
+					filename := filepath.Join(tempDir, hash)
+					f, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 					if err != nil {
-						log.Fatal().Msgf("Error creating file: %v", err)
+						s.components.toast.SetText("Failed to create temporary file")
+						return nil
 					}
 					defer f.Close()
 
@@ -210,7 +216,8 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 
 					_, err = f.WriteString(secretData)
 					if err != nil {
-						log.Fatal()
+						s.components.toast.SetText("Failed to write secret to temporary file")
+						return nil
 					}
 
 					return editor.OpenEditor(secretData, s.components.list.SelectedItem())

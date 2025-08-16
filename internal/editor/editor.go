@@ -1,10 +1,12 @@
 package editor
 
 import (
-	tea "github.com/charmbracelet/bubbletea"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"smm/internal/view"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 type EditFinishedMsg struct {
@@ -18,13 +20,17 @@ func OpenEditor(secretData string, currentSecret view.Secret) tea.Cmd {
 	if editor == "" {
 		editor = "vim"
 	}
+
+	tempDir := os.TempDir()
 	hash := currentSecret.Hash()
-	c := exec.Command(editor, "/tmp/"+hash)
+	filePath := filepath.Join(tempDir, hash)
+
+	c := exec.Command(editor, filePath)
 	return tea.ExecProcess(c, func(err error) tea.Msg {
-		fileContent, err := os.ReadFile("/tmp/" + hash)
+		fileContent, err := os.ReadFile(filePath)
 		equal := string(fileContent) == secretData
 
-		_ = os.Remove("/tmp/" + hash)
+		_ = os.Remove(filePath)
 
 		return EditFinishedMsg{equal, currentSecret, fileContent}
 	})
