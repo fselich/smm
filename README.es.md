@@ -1,20 +1,20 @@
-**[🇺🇸 English](README.md)** | **🇪🇸 Español**
+**[English](README.md)** | **Español**
 
 # SMM - Secret Manager Manager
 
 **SMM** es una herramienta de interfaz de terminal (TUI) que permite visualizar, editar y gestionar secretos de Google Cloud Platform de manera eficiente y segura.
 
-## ✨ Características
+## Características
 
-- 🔍 **Navegación intuitiva** con interfaz de terminal moderna
-- 📝 **Edición de secretos** con tu editor favorito
-- 🔄 **Gestión de versiones** - visualiza, restaura y crea nuevas versiones
-- 🔎 **Búsqueda avanzada** - busca por nombre o contenido
-- 📋 **Copia al portapapeles** con un solo comando
-- 🎨 **Syntax highlighting** para múltiples formatos (JSON, Bash, INI, PHP)
-- 🚀 **Multi-proyecto** - cambia fácilmente entre proyectos de GCP
+- **Navegación intuitiva** con interfaz de terminal moderna
+- **Edición de secretos** con tu editor favorito
+- **Gestión de versiones** - visualiza, restaura y crea nuevas versiones
+- **Búsqueda avanzada** - busca por nombre o contenido
+- **Copia al portapapeles** con un solo comando
+- **Syntax highlighting** para múltiples formatos (JSON, Bash, INI, PHP)
+- **Multi-proyecto** - cambia fácilmente entre proyectos de GCP
 
-## 📦 Instalación
+## Instalación
 
 ### Homebrew (Recomendado)
 
@@ -57,14 +57,15 @@ cd smm
 go build -o smm cmd/main.go
 ```
 
-## 🚀 Uso
+## Uso
 
 ### Uso básico
 ```bash
 ./smm                    # Usar proyecto por defecto
 ./smm -p PROJECT_ID      # Especificar proyecto de GCP
+./smm -v                 # Mostrar información de la versión
 ```
-## ⌨️ Controles de Teclado
+## Controles de Teclado
 
 ### Navegación
 | Tecla       | Acción                                                     |
@@ -100,9 +101,10 @@ go build -o smm cmd/main.go
 | Opción            | Descripción                                    |
 | ----------------- | ---------------------------------------------- |
 | `-p PROJECT_ID`   | Cargar secretos del proyecto especificado     |
+| `-v`              | Mostrar información de la versión             |
 
 
-## 🔐 Autenticación
+## Autenticación
 
 SMM utiliza la autenticación existente de `gcloud`. Asegúrate de estar autenticado antes de usar la herramienta.
 
@@ -140,16 +142,16 @@ Si no estás autenticado, puedes hacerlo con:
 gcloud auth login
 ```
 
-## 🎨 Syntax Highlighting
+## Syntax Highlighting
 
 SMM detecta automáticamente el formato del contenido y aplica coloreado de sintaxis para:
 
-- 🌱 **Bash/Env** - Variables de entorno
-- 📄 **JSON** - Datos estructurados  
-- ⚙️ **INI** - Archivos de configuración
-- 🐘 **PHP** - Código PHP
+- **Bash/Env** - Variables de entorno
+- **JSON** - Datos estructurados  
+- **INI** - Archivos de configuración
+- **PHP** - Código PHP
 
-## 📁 Configuración
+## Configuración
 
 La aplicación almacena su configuración en `~/.config/smm/config.yaml`. **El archivo de configuración se crea automáticamente si no existe** cuando ejecutas SMM por primera vez.
 
@@ -170,7 +172,7 @@ logPath: "/ruta/al/archivo/log"          # Ruta del archivo de log (opcional)
 - El campo `selected` recuerda tu último proyecto usado
 - `logPath` es opcional - déjalo vacío para deshabilitar el logging
 
-## 🤝 Contribuir
+## Contribuir
 
 1. Fork el proyecto
 2. Crea una rama para tu feature (`git checkout -b feature/nueva-caracteristica`)
@@ -178,6 +180,6 @@ logPath: "/ruta/al/archivo/log"          # Ruta del archivo de log (opcional)
 4. Push a la rama (`git push origin feature/nueva-caracteristica`)  
 5. Abre un Pull Request
 
-## 📝 Licencia
+## Licencia
 
 Este proyecto está bajo la licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.

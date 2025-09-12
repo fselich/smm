@@ -1,20 +1,20 @@
-**🇺🇸 English** | **[🇪🇸 Español](README.es.md)**
+**English** | **[Español](README.es.md)**
 
 # SMM - Secret Manager Manager
 
 **SMM** is a Terminal User Interface (TUI) tool that allows you to efficiently and securely view, edit, and manage Google Cloud Platform secrets.
 
-## ✨ Features
+## Features
 
-- 🔍 **Intuitive navigation** with modern terminal interface
-- 📝 **Secret editing** with your favorite editor
-- 🔄 **Version management** - view, restore, and create new versions
-- 🔎 **Advanced search** - search by name or content
-- 📋 **Copy to clipboard** with a single command
-- 🎨 **Syntax highlighting** for multiple formats (JSON, Bash, INI, PHP)
-- 🚀 **Multi-project** - easily switch between GCP projects
+- **Intuitive navigation** with modern terminal interface
+- **Secret editing** with your favorite editor
+- **Version management** - view, restore, and create new versions
+- **Advanced search** - search by name or content
+- **Copy to clipboard** with a single command
+- **Syntax highlighting** for multiple formats (JSON, Bash, INI, PHP)
+- **Multi-project** - easily switch between GCP projects
 
-## 📦 Installation
+## Installation
 
 ### Homebrew (Recommended)
 
@@ -57,15 +57,16 @@ cd smm
 go build -o smm cmd/main.go
 ```
 
-## 🚀 Usage
+## Usage
 
 ### Basic usage
 ```bash
 ./smm                    # Use default project
 ./smm -p PROJECT_ID      # Specify GCP project
+./smm -v                 # Show version information
 ```
 
-## ⌨️ Keyboard Controls
+## Keyboard Controls
 
 ### Navigation
 | Key         | Action                                                     |
@@ -101,8 +102,9 @@ go build -o smm cmd/main.go
 | Option            | Description                                    |
 | ----------------- | ---------------------------------------------- |
 | `-p PROJECT_ID`   | Load secrets from specified project           |
+| `-v`              | Show version information                       |
 
-## 🔐 Authentication
+## Authentication
 
 SMM uses existing `gcloud` authentication. Make sure you're authenticated before using the tool.
 
@@ -140,16 +142,16 @@ If you're not authenticated, you can do so with:
 gcloud auth login
 ```
 
-## 🎨 Syntax Highlighting
+## Syntax Highlighting
 
 SMM automatically detects content format and applies syntax highlighting for:
 
-- 🌱 **Bash/Env** - Environment variables
-- 📄 **JSON** - Structured data  
-- ⚙️ **INI** - Configuration files
-- 🐘 **PHP** - PHP code
+- **Bash/Env** - Environment variables
+- **JSON** - Structured data  
+- **INI** - Configuration files
+- **PHP** - PHP code
 
-## 📁 Configuration
+## Configuration
 
 The application stores its configuration in `~/.config/smm/config.yaml`. **The configuration file is created automatically if it doesn't exist** when you first run SMM.
 
@@ -170,7 +172,7 @@ logPath: "/path/to/log/file"            # Log file path (optional)
 - The `selected` field remembers your last used project  
 - `logPath` is optional - leave empty to disable logging
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the project
 2. Create a feature branch (`git checkout -b feature/new-feature`)
@@ -178,6 +180,6 @@ logPath: "/path/to/log/file"            # Log file path (optional)
 4. Push to the branch (`git push origin feature/new-feature`)  
 5. Open a Pull Request
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
