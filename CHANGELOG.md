@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.14] - 2025-09-12
+
+### Fixed
+- Remove trailing newlines when editing secrets to prevent breaking microservices (resolves #12)
+
 ## [0.1.12] - 2025-08-16
 
 ### Changed
