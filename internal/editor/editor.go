@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"smm/internal/view"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -29,6 +30,7 @@ func OpenEditor(secretData string, currentSecret view.Secret) tea.Cmd {
 	return tea.ExecProcess(c, func(err error) tea.Msg {
 		fileContent, err := os.ReadFile(filePath)
 		equal := string(fileContent) == secretData
+		fileContent = []byte(strings.TrimRight(string(fileContent), "\n\r"))
 
 		_ = os.Remove(filePath)
 
