@@ -134,6 +134,10 @@ func (f FakeClient) GetSecretVersion(secretName, version string) ([]byte, error)
 	return f.createJsonSecretVersion(secretName, version), nil
 }
 
+func (f FakeClient) CreateSecret(name string) error {
+	return nil
+}
+
 func (f FakeClient) AddSecretVersion(secretName string, payload []byte) error {
 	return nil
 }

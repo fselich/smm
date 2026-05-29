@@ -2,8 +2,8 @@ package view
 
 import (
 	"fmt"
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/list"
+	tea "charm.land/bubbletea/v2"
 	"github.com/muesli/reflow/truncate"
 	"io"
 	"smm/internal/ui"
@@ -15,7 +15,7 @@ type ItemDelegate struct {
 
 func NewListDelegate() *ItemDelegate {
 	return &ItemDelegate{
-		Styles: list.NewDefaultItemStyles(),
+		Styles: list.NewDefaultItemStyles(true),
 	}
 }
 

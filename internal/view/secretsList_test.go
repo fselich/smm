@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/list"
+	tea "charm.land/bubbletea/v2"
 	"github.com/jaswdr/faker/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -225,7 +225,7 @@ func (suite *SecretsListTestSuite) TestUpdate_NotFocused() {
 	suite.secretsList.IsFocused = false
 	originalIndex := suite.secretsList.Index()
 
-	updatedList, _ := suite.secretsList.Update(tea.KeyMsg{Type: tea.KeyDown})
+	updatedList, _ := suite.secretsList.Update(tea.KeyPressMsg{Code: tea.KeyDown})
 
 	assert.Equal(t, originalIndex, updatedList.Index())
 }
@@ -234,7 +234,7 @@ func (suite *SecretsListTestSuite) TestUpdate_EscapeKey() {
 	t := suite.T()
 	suite.secretsList.IsFocused = true
 
-	_, cmd := suite.secretsList.Update(tea.KeyMsg{Type: tea.KeyEsc})
+	_, cmd := suite.secretsList.Update(tea.KeyPressMsg{Code: tea.KeyEsc})
 
 	assert.NotNil(t, cmd)
 }

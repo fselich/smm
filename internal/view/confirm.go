@@ -1,7 +1,7 @@
 package view
 
 import (
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 	"github.com/erikgeiser/promptkit/confirmation"
 	"github.com/rs/zerolog/log"
 )
@@ -33,7 +33,7 @@ func NewConfirm(question string, message any) *Confirm {
 }
 
 func (c *Confirm) View() string {
-	return c.confirmation.View()
+	return c.confirmation.View().Content
 }
 
 func (c *Confirm) Init() tea.Cmd {
@@ -42,18 +42,21 @@ func (c *Confirm) Init() tea.Cmd {
 
 func (c *Confirm) Update(msg tea.Msg) (Modal, tea.Cmd) {
 	m, cmd := c.confirmation.Update(msg)
+	c.confirmation = m.(*confirmation.Model)
 
 	if cmd != nil {
 		message := cmd()
-		switch message.(type) {
-		case tea.QuitMsg:
-			result, _ := m.(*confirmation.Model).Value()
-			log.Info().Msgf("Confirmation result: %v", result)
-			cmd := func() tea.Msg {
+		if _, ok := message.(tea.QuitMsg); ok {
+			result, err := c.confirmation.Value()
+			if err != nil {
+				log.Error().Err(err).Msg("Confirmation result error")
+				return c, nil
+			}
+			return c, func() tea.Msg {
 				return ConfirmationResultMessage{result, c.message}
 			}
-			return c, cmd
 		}
+		return c, cmd
 	}
 	return c, nil
 }

@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/list"
+	tea "charm.land/bubbletea/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -54,7 +54,7 @@ func (suite *ListDelegateTestSuite) TestSpacing() {
 
 func (suite *ListDelegateTestSuite) TestUpdate() {
 	t := suite.T()
-	msg := tea.KeyMsg{Type: tea.KeyDown}
+	msg := tea.KeyPressMsg{Code: tea.KeyDown}
 
 	cmd := suite.delegate.Update(msg, &suite.listModel)
 

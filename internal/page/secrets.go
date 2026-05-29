@@ -5,15 +5,15 @@ import (
 	"os"
 	"path/filepath"
 	"smm/internal/client"
+	"smm/internal/config"
 	"smm/internal/editor"
 	"smm/internal/ui"
 	"smm/internal/view"
 	"strconv"
 
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	tea "charm.land/bubbletea/v2"
+	lipgloss "charm.land/lipgloss/v2"
 	"github.com/rs/zerolog/log"
-	"github.com/tiagomelo/go-clipboard/clipboard"
 )
 
 type Secrets struct {
@@ -56,22 +56,22 @@ func (S CurrentSecret) Index() int {
 
 func (s *Secrets) View() string {
 	borderedList := ui.StyleBorder(s.components.list.IsFocused).
-		Width(s.components.list.Width()).
+		Width(s.components.list.Width() + 2).
 		Render(s.components.list.View())
 	borderedDetail := ui.StyleBorder(s.components.detail.IsFocused).
 		Render(s.components.detail.View())
 
 	borderedHelp := ui.StyleLowBorder().
-		Width(s.components.list.Width() + s.components.detail.Width() + 2).
+		Width(s.components.list.Width() + s.components.detail.Width() + 4).
 		Render(s.components.help.View())
 
 	var x int
 	if s.components.list.IsFiltering() {
-		x = ((s.components.list.Width() - len(s.components.list.FilterValue())) / 2) - 1
+		x = ((s.ListWidth - len(s.components.list.FilterValue())) / 2) - 1
 		listTitle := ui.StyleBorderTitle().Render(s.components.list.FilterValue())
 		borderedList = ui.PlaceOverlay(x, 0, "\""+listTitle+"█\"", borderedList, false)
 	} else if s.components.list.IsFiltered() {
-		x = (s.components.list.Width() - len(s.components.list.FilterValue())) / 2
+		x = (s.ListWidth - len(s.components.list.FilterValue())) / 2
 		listTitle := ui.StyleBorderTitle().Render(s.components.list.FilterValue())
 		borderedList = ui.PlaceOverlay(x, 0, listTitle, borderedList, false)
 	}
@@ -81,8 +81,12 @@ func (s *Secrets) View() string {
 		detailTitle := ui.StyleBorderTitle().Render(s.components.detail.FilterValue)
 		borderedDetail = ui.PlaceOverlay(x, 0, detailTitle, borderedDetail, false)
 	} else {
-		x = (s.components.detail.Width() - len(s.components.list.SelectedItem().Title())) / 2
-		detailTitle := ui.StyleBorderTitle().Render(s.components.list.SelectedItem().Title())
+		title := s.components.list.SelectedItem().Title()
+		if s.components.detail.IsVisualMode() {
+			title = "[VISUAL] " + title
+		}
+		x = (s.components.detail.Width() - len(title)) / 2
+		detailTitle := ui.StyleBorderTitle().Render(title)
 		borderedDetail = ui.PlaceOverlay(x, 0, detailTitle, borderedDetail, false)
 	}
 
@@ -111,7 +115,7 @@ func (s *Secrets) Resize(width int, height int) {
 	s.components.list.SetWidth(s.ListWidth)
 	s.components.detail.SetWidth(width - 5 - s.components.list.Width())
 	s.components.detail.SetHeight(height - 6)
-	s.components.help.SetWidth(s.components.list.Width() + s.components.detail.Width() + 2)
+	s.components.help.SetWidth(s.components.list.Width() + s.components.detail.Width() + 4)
 	s.components.toast.SetWith(width)
 }
 
@@ -121,6 +125,7 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case view.ShowToast:
+		log.Info().Msg("vemos la toast")
 		s.components.toast.SetText(msg.Text)
 		return nil
 	case view.ShowProjectSelectMsg:
@@ -132,6 +137,20 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 		s.components.list.DeepSearch(msg.Query, s.gcp)
 		s.Modal = nil
 		s.components.detail.SetFilteredValue(msg.Query)
+	case view.CreateSecretMessage:
+		s.Modal = nil
+		err := s.gcp.CreateSecret(msg.Name)
+		if err != nil {
+			log.Error().Err(err).Msg("Error creating secret")
+			s.components.toast.SetText("Error creating secret")
+			return nil
+		}
+		s.Init()
+		s.components.toast.SetText("Secret created: " + msg.Name)
+		resizeCmd := func() tea.Msg {
+			return view.ResizeMessage{}
+		}
+		cmds = append(cmds, resizeCmd)
 	case view.ConfirmationResultMessage:
 		switch msg.Msg.(type) {
 		case editor.EditFinishedMsg:
@@ -180,7 +199,7 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 
 	if s.Modal == nil {
 		switch msg := msg.(type) {
-		case tea.KeyMsg:
+		case tea.KeyPressMsg:
 			if s.components.list.IsFiltering() == false && s.components.detail.IsFiltering == false {
 				switch msg.String() {
 				case "n":
@@ -233,55 +252,65 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 						Version:  s.components.list.SelectedItem().Version(),
 					}
 					s.Modal = view.NewConfirm("Do you want to restore this secret version?", msg)
-					s.Modal.Init()
+					cmds = append(cmds, s.Modal.Init())
 				case "p":
 					s.Modal = view.NewProjectSelectorModal()
 					s.Modal.Init()
 				case "ctrl+c":
 					return tea.Quit
 				case "v":
-					selected := s.components.list.SelectedItem()
-					if selected.Type() == "current" {
-						deleted := s.components.list.DelVersionItems()
-						if !deleted {
-							versions, err := s.gcp.GetSecretVersions(selected.FullPath())
-							if err != nil {
-								log.Error().Err(err).Msg("Error getting secret versions")
-								s.components.toast.SetText("Error getting secret versions")
-								return nil
-							}
-							versions = versions[1:]
-							s.components.toast.SetText(fmt.Sprintf("Secret has %v versions", len(versions)))
-							for i, version := range versions {
-								secret := view.NewSecret(strconv.Itoa(version.Version), version.FullPath, "version", version.Version, version.CreatedAt)
-								secret.SetRelated(&selected)
-								cmd = s.components.list.InsertItem(s.components.list.RealIndex()+1+i, secret)
+					if config.ExpermientalEnabled() == false {
+						return cmd
+					}
+
+					if s.components.detail.IsFocused {
+						s.components.detail.EnterVisualMode()
+					} else {
+						selected := s.components.list.SelectedItem()
+						if selected.Type() == "current" {
+							deleted := s.components.list.DelVersionItems()
+							if !deleted {
+								versions, err := s.gcp.GetSecretVersions(selected.FullPath())
+								if err != nil {
+									log.Error().Err(err).Msg("Error getting secret versions")
+									s.components.toast.SetText("Error getting secret versions")
+									return nil
+								}
+								versions = versions[1:]
+								s.components.toast.SetText(fmt.Sprintf("Secret has %v versions", len(versions)))
+								for i, version := range versions {
+									secret := view.NewSecret(strconv.Itoa(version.Version), version.FullPath, "version", version.Version, version.CreatedAt)
+									secret.SetRelated(&selected)
+									cmd = s.components.list.InsertItem(s.components.list.RealIndex()+1+i, secret)
+								}
 							}
 						}
+						s.components.list.Select(selected.Index())
+						return cmd
 					}
-					s.components.list.Select(selected.Index())
-					return cmd
 				case "c":
 					secretName := s.components.list.SelectedItem().FullPath()
 					data, err := s.gcp.GetSecret(secretName)
 					if err != nil {
 						log.Error().Err(err).Msg("Error getting secret for clipboard")
 						s.components.toast.SetText("Error getting secret")
-					} else {
-						secretData := string(data)
-						c := clipboard.New()
-						err = c.CopyText(secretData)
-						if err != nil {
-							log.Error().Err(err).Msg("Error copying to clipboard")
-							s.components.toast.SetText("Failed to copy to clipboard")
-						} else {
-							s.components.toast.SetText("Secret copied to clipboard")
-						}
+						return nil
 					}
+					s.components.toast.SetText("Secret copied to clipboard")
+					return view.CopyToClipboard(string(data))
+
 				case "?":
-					s.Modal = view.NewProjectSelectorModal()
+					s.Modal = view.NewHelpModal()
 					s.Modal.Init()
 				case "esc":
+					if s.components.detail.IsVisualMode() {
+						s.components.detail.ExitVisualMode()
+						return nil
+					}
+					if s.components.detail.HasCursor() {
+						s.components.detail.ClearCursor()
+						return nil
+					}
 					s.Init()
 					resizeCmd := func() tea.Msg {
 						return view.ResizeMessage{}
@@ -292,6 +321,9 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 					s.components.detail.SetFilteredValue("")
 				case "ctrl+f":
 					s.Modal = view.NewSearchForm()
+					s.Modal.Init()
+				case "ctrl+n":
+					s.Modal = view.NewSecretFormModal()
 					s.Modal.Init()
 				case "i":
 					selected := s.components.list.SelectedItem()
@@ -327,20 +359,22 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 				s.components.toast.SetText("Changes detected")
 
 				s.Modal = view.NewConfirm("Do you want to create a new secret based on this?", msg)
-				s.Modal.Init()
+				cmds = append(cmds, s.Modal.Init())
 
 				s.components.detail.SetContent(string(msg.SecretData))
 				_, cmd = s.components.detail.Update(msg)
-				return cmd
+				cmds = append(cmds, cmd)
+				return tea.Batch(cmds...)
 			}
 			return nil
 		case SecretLoadedMsg:
 			s.components.detail.SetContent(msg.Text)
+			s.components.detail.SetRawContent(msg.RawText)
 			return nil
 		}
 	} else {
 		switch msg := msg.(type) {
-		case tea.KeyMsg:
+		case tea.KeyPressMsg:
 			switch msg.String() {
 			case "esc":
 				s.Modal = nil
@@ -365,7 +399,7 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 	_, cmd = s.components.toast.Update(msg)
 	cmds = append(cmds, cmd)
 
-	if s.components.list.IsFiltering() == false {
+	if s.components.list.IsFiltering() == false && !s.components.detail.IsVisualMode() && !s.components.detail.HasCursor() {
 		cmd = s.showSecret()
 		cmds = append(cmds, cmd)
 	}
@@ -374,8 +408,9 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 }
 
 type SecretLoadedMsg struct {
-	Secret view.Secret
-	Text   string
+	Secret  view.Secret
+	Text    string
+	RawText string
 }
 
 func adjustListWidth(s *Secrets, delta int) tea.Cmd {
@@ -405,6 +440,7 @@ func (s *Secrets) showSecret() tea.Cmd {
 
 	return func() tea.Msg {
 		var text string
+		var rawText string
 		text = "loading"
 		if selected.Type() == "version" {
 			versionSecret, err := s.gcp.GetSecretVersion(selected.FullPath(), strconv.Itoa(selected.Version()))
@@ -412,6 +448,7 @@ func (s *Secrets) showSecret() tea.Cmd {
 				text = "Error loading secret version: " + err.Error()
 			} else {
 				text = ui.SyntaxHighlight(versionSecret)
+				rawText = string(versionSecret)
 			}
 		} else {
 			secretData, err := s.gcp.GetSecret(selected.FullPath())
@@ -419,11 +456,13 @@ func (s *Secrets) showSecret() tea.Cmd {
 				text = "Error loading secret: " + err.Error()
 			} else {
 				text = ui.SyntaxHighlight(secretData)
+				rawText = string(secretData)
 			}
 		}
 		return SecretLoadedMsg{
-			Secret: selected,
-			Text:   text,
+			Secret:  selected,
+			Text:    text,
+			RawText: rawText,
 		}
 	}
 

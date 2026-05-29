@@ -7,7 +7,7 @@ import (
 	"smm/internal/view"
 	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 )
 
 type EditFinishedMsg struct {

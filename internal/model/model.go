@@ -6,7 +6,7 @@ import (
 	"smm/internal/page"
 	"smm/internal/view"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 )
 
 type Page interface {
@@ -34,7 +34,7 @@ func (m *Model) Init() tea.Cmd {
 	m.initialize()
 
 	if m.ProjectId == "" || err != nil {
-		m.page.Update(tea.KeyMsg{Runes: []rune("p"), Type: tea.KeyRunes})
+		m.page.Update(tea.KeyPressMsg{Text: "p"})
 	}
 
 	return nil
@@ -82,12 +82,14 @@ func (m *Model) resize() {
 	}
 }
 
-func (m *Model) View() string {
+func (m *Model) View() tea.View {
 	if m.page == nil {
-		return "Error: Application not properly initialized. Please restart."
+		return tea.NewView("Error: Application not properly initialized. Please restart.")
 	}
 
-	return m.page.View()
+	v := tea.NewView(m.page.View())
+	v.AltScreen = true
+	return v
 }
 
 func (m *Model) setProjectId(projectId string) error {

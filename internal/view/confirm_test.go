@@ -3,7 +3,7 @@ package view
 import (
 	"testing"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -54,7 +54,7 @@ func (suite *ConfirmTestSuite) TestView() {
 
 func (suite *ConfirmTestSuite) TestUpdate_RegularMessage() {
 	t := suite.T()
-	keyMsg := tea.KeyMsg{Type: tea.KeyDown}
+	keyMsg := tea.KeyPressMsg{Code: tea.KeyDown}
 
 	modal, cmd := suite.confirm.Update(keyMsg)
 
@@ -66,7 +66,7 @@ func (suite *ConfirmTestSuite) TestUpdate_QuitMessage() {
 	t := suite.T()
 	// We need to create a mock update scenario where the confirmation returns a quit command
 	// Since we can't easily mock the internal confirmation model, we'll test the structure
-	modal, cmd := suite.confirm.Update(tea.KeyMsg{Type: tea.KeyEsc})
+	modal, cmd := suite.confirm.Update(tea.KeyPressMsg{Code: tea.KeyEsc})
 	
 	assert.NotNil(t, modal)
 	// cmd might be nil or not nil depending on the internal state
@@ -107,7 +107,7 @@ func TestModal_Interface(t *testing.T) {
 	assert.NotNil(t, modal.View())
 	assert.NotNil(t, modal.Init())
 	
-	updatedModal, cmd := modal.Update(tea.KeyMsg{Type: tea.KeyDown})
+	updatedModal, cmd := modal.Update(tea.KeyPressMsg{Code: tea.KeyDown})
 	assert.NotNil(t, updatedModal)
 	_ = cmd
 }
@@ -139,11 +139,11 @@ func (suite *ConfirmTestSuite) TestMultipleUpdates() {
 	t := suite.T()
 	
 	// Test multiple updates in sequence
-	modal1, cmd1 := suite.confirm.Update(tea.KeyMsg{Type: tea.KeyDown})
+	modal1, cmd1 := suite.confirm.Update(tea.KeyPressMsg{Code: tea.KeyDown})
 	assert.NotNil(t, modal1)
 	_ = cmd1
 
-	modal2, cmd2 := suite.confirm.Update(tea.KeyMsg{Type: tea.KeyUp})
+	modal2, cmd2 := suite.confirm.Update(tea.KeyPressMsg{Code: tea.KeyUp})
 	assert.NotNil(t, modal2)
 	_ = cmd2
 
@@ -188,7 +188,7 @@ func (suite *ConfirmTestSuite) TestConfirmImplementsModalCorrectly() {
 	assert.NotNil(t, initCmd)
 	
 	// Test Update method
-	updatedModal, updateCmd := modal.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	updatedModal, updateCmd := modal.Update(tea.KeyPressMsg{Code: tea.KeyEnter})
 	assert.NotNil(t, updatedModal)
 	_ = updateCmd
 	
