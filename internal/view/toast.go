@@ -1,9 +1,11 @@
 package view
 
 import (
-	tea "github.com/charmbracelet/bubbletea"
 	"smm/internal/ui"
 	"time"
+
+	tea "charm.land/bubbletea/v2"
+	"github.com/rs/zerolog/log"
 )
 
 type Toast struct {
@@ -47,5 +49,6 @@ func (m *Toast) View() string {
 	if time.Since(m.timer) > 3*time.Second {
 		m.text = ""
 	}
+	log.Info().Msgf("view toast %s", m.text)
 	return ui.StyleToast().Width(m.width).Render(m.text)
 }

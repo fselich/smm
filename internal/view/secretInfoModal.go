@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	tea "charm.land/bubbletea/v2"
+	lipgloss "charm.land/lipgloss/v2"
 	"smm/internal/client"
 )
 
@@ -62,7 +62,7 @@ func (s *SecretInfoModal) Init() tea.Cmd {
 
 func (s *SecretInfoModal) Update(msg tea.Msg) (Modal, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "esc":
 			return s, nil

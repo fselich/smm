@@ -8,7 +8,7 @@ import (
 	"smm/internal/config"
 	"smm/internal/model"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 )
 
 var version = "dev"
@@ -33,7 +33,7 @@ func main() {
 		projectId = config.GetSelectedProjectId()
 	}
 
-	p := tea.NewProgram(model.New(projectId), tea.WithAltScreen())
+	p := tea.NewProgram(model.New(projectId))
 
 	_, err := p.Run()
 	if err != nil {

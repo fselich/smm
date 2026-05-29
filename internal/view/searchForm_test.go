@@ -3,7 +3,7 @@ package view
 import (
 	"testing"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -48,10 +48,10 @@ func (suite *SearchFormTestSuite) TestInit() {
 func (suite *SearchFormTestSuite) TestUpdate_EnterKey() {
 	t := suite.T()
 	// First, simulate typing some text
-	keyA := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'t'}}
-	keyE := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'e'}}
-	keyS := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'s'}}
-	keyT := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'t'}}
+	keyA := tea.KeyPressMsg{Text: "t"}
+	keyE := tea.KeyPressMsg{Text: "e"}
+	keyS := tea.KeyPressMsg{Text: "s"}
+	keyT := tea.KeyPressMsg{Text: "t"}
 
 	suite.searchForm.Update(keyA)
 	suite.searchForm.Update(keyE)
@@ -59,7 +59,7 @@ func (suite *SearchFormTestSuite) TestUpdate_EnterKey() {
 	suite.searchForm.Update(keyT)
 
 	// Now test Enter key
-	enterKey := tea.KeyMsg{Type: tea.KeyEnter}
+	enterKey := tea.KeyPressMsg{Code: tea.KeyEnter}
 	modal, cmd := suite.searchForm.Update(enterKey)
 
 	assert.NotNil(t, modal)
@@ -75,7 +75,7 @@ func (suite *SearchFormTestSuite) TestUpdate_EnterKey() {
 
 func (suite *SearchFormTestSuite) TestUpdate_RegularKey() {
 	t := suite.T()
-	keyMsg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'a'}}
+	keyMsg := tea.KeyPressMsg{Text: "a"}
 
 	modal, cmd := suite.searchForm.Update(keyMsg)
 
@@ -87,13 +87,13 @@ func (suite *SearchFormTestSuite) TestUpdate_RegularKey() {
 func (suite *SearchFormTestSuite) TestUpdate_BackspaceKey() {
 	t := suite.T()
 	// First add some text
-	keyA := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'a'}}
-	keyB := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'b'}}
+	keyA := tea.KeyPressMsg{Text: "a"}
+	keyB := tea.KeyPressMsg{Text: "b"}
 	suite.searchForm.Update(keyA)
 	suite.searchForm.Update(keyB)
 
 	// Now test backspace
-	backspaceKey := tea.KeyMsg{Type: tea.KeyBackspace}
+	backspaceKey := tea.KeyPressMsg{Code: tea.KeyBackspace}
 	modal, cmd := suite.searchForm.Update(backspaceKey)
 
 	assert.NotNil(t, modal)
@@ -124,7 +124,7 @@ func (suite *SearchFormTestSuite) TestView() {
 func (suite *SearchFormTestSuite) TestView_WithText() {
 	t := suite.T()
 	// Add some text first
-	keyMsg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'t'}}
+	keyMsg := tea.KeyPressMsg{Text: "t"}
 	suite.searchForm.Update(keyMsg)
 
 	view := suite.searchForm.View()
@@ -149,9 +149,9 @@ func (suite *SearchFormTestSuite) TestFormProperties() {
 	assert.Empty(t, form.Value())
 
 	// Test that we can add text and it's reflected in Value()
-	keyMsg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'h'}}
+	keyMsg := tea.KeyPressMsg{Text: "h"}
 	form.Update(keyMsg)
-	keyMsg = tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'i'}}
+	keyMsg = tea.KeyPressMsg{Text: "i"}
 	form.Update(keyMsg)
 
 	assert.Equal(t, "hi", form.Value())
@@ -162,7 +162,7 @@ func (suite *SearchFormTestSuite) TestMultipleCharacterInput() {
 	characters := []rune{'h', 'e', 'l', 'l', 'o'}
 
 	for _, char := range characters {
-		keyMsg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{char}}
+		keyMsg := tea.KeyPressMsg{Text: string(char)}
 		suite.searchForm.Update(keyMsg)
 	}
 
@@ -171,7 +171,7 @@ func (suite *SearchFormTestSuite) TestMultipleCharacterInput() {
 
 func (suite *SearchFormTestSuite) TestEnterWithEmptyInput() {
 	t := suite.T()
-	enterKey := tea.KeyMsg{Type: tea.KeyEnter}
+	enterKey := tea.KeyPressMsg{Code: tea.KeyEnter}
 
 	modal, cmd := suite.searchForm.Update(enterKey)
 

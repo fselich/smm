@@ -3,7 +3,7 @@ package view
 import (
 	"testing"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -35,7 +35,7 @@ func (suite *HelpTestSuite) TestSetWidth() {
 
 	suite.help.SetWidth(width)
 
-	assert.Equal(t, width, suite.help.teaView.Width)
+	assert.Equal(t, width, suite.help.teaView.Width())
 }
 
 func (suite *HelpTestSuite) TestSetHeight() {
@@ -46,7 +46,7 @@ func (suite *HelpTestSuite) TestSetHeight() {
 	suite.help.SetHeight(height)
 
 	// Testing the actual behavior (which sets Width)
-	assert.Equal(t, height, suite.help.teaView.Width)
+	assert.Equal(t, height, suite.help.teaView.Width())
 }
 
 func (suite *HelpTestSuite) TestView() {
@@ -56,12 +56,12 @@ func (suite *HelpTestSuite) TestView() {
 
 	assert.NotEmpty(t, view)
 	assert.Contains(t, view, "/")
-	assert.Contains(t, view, "filter")
+	assert.Contains(t, view, "Filter")
 }
 
 func (suite *HelpTestSuite) TestUpdate() {
 	t := suite.T()
-	msg := tea.KeyMsg{Type: tea.KeyDown}
+	msg := tea.KeyPressMsg{Code: tea.KeyDown}
 
 	updatedHelp, cmd := suite.help.Update(msg)
 
@@ -73,15 +73,16 @@ func (suite *HelpTestSuite) TestUpdate() {
 func TestKeyMapShortHelp(t *testing.T) {
 	shortHelp := keys.ShortHelp()
 
-	assert.Len(t, shortHelp, 9)
+	assert.Len(t, shortHelp, 11)
 	assert.Contains(t, shortHelp, keys.Filter)
 	assert.Contains(t, shortHelp, keys.Search)
+	assert.Contains(t, shortHelp, keys.NewSecret)
 	assert.Contains(t, shortHelp, keys.Copy)
 	assert.Contains(t, shortHelp, keys.NewVersion)
 	assert.Contains(t, shortHelp, keys.Versions)
 	assert.Contains(t, shortHelp, keys.Restore)
-	assert.Contains(t, shortHelp, keys.Info)
-	assert.Contains(t, shortHelp, keys.ProjectId)
+	assert.Contains(t, shortHelp, keys.Visual)
+	assert.Contains(t, shortHelp, keys.Yank)
 	assert.Contains(t, shortHelp, keys.Quit)
 }
 
@@ -89,65 +90,77 @@ func TestKeyMapFullHelp(t *testing.T) {
 	fullHelp := keys.FullHelp()
 
 	assert.Len(t, fullHelp, 3)
-	assert.Len(t, fullHelp[0], 4) // Movement keys
-	assert.Len(t, fullHelp[1], 3) // Action keys (now includes Info)
-	assert.Len(t, fullHelp[2], 2) // Help and quit keys
+	assert.Len(t, fullHelp[0], 7) // Movement, filter, search, refresh
+	assert.Len(t, fullHelp[1], 6) // New secret, version, restore, info, copy
+	assert.Len(t, fullHelp[2], 6) // Visual, yank, project, help, more, quit
 }
 
 func TestKeyBindings(t *testing.T) {
 	// Test Filter key binding
 	assert.Equal(t, "/", keys.Filter.Keys()[0])
-	assert.Equal(t, "filter", keys.Filter.Help().Desc)
+	assert.Equal(t, "Filter", keys.Filter.Help().Desc)
 
 	// Test Search key binding
 	assert.Equal(t, "ctr+f", keys.Search.Keys()[0])
-	assert.Equal(t, "search", keys.Search.Help().Desc)
+	assert.Equal(t, "Search", keys.Search.Help().Desc)
 
 	// Test movement keys
 	assert.Contains(t, keys.Up.Keys(), "up")
 	assert.Contains(t, keys.Up.Keys(), "k")
-	assert.Equal(t, "move up", keys.Up.Help().Desc)
+	assert.Equal(t, "Move up", keys.Up.Help().Desc)
 
 	assert.Contains(t, keys.Down.Keys(), "down")
 	assert.Contains(t, keys.Down.Keys(), "j")
-	assert.Equal(t, "move down", keys.Down.Help().Desc)
+	assert.Equal(t, "Move down", keys.Down.Help().Desc)
 
 	assert.Contains(t, keys.Left.Keys(), "left")
 	assert.Contains(t, keys.Left.Keys(), "h")
-	assert.Equal(t, "move left", keys.Left.Help().Desc)
+	assert.Equal(t, "Move left", keys.Left.Help().Desc)
 
 	assert.Contains(t, keys.Right.Keys(), "right")
 	assert.Contains(t, keys.Right.Keys(), "l")
-	assert.Equal(t, "move right", keys.Right.Help().Desc)
+	assert.Equal(t, "Move right", keys.Right.Help().Desc)
 
 	// Test Help key binding
 	assert.Equal(t, "?", keys.Help.Keys()[0])
-	assert.Equal(t, "toggle help", keys.Help.Help().Desc)
+	assert.Equal(t, "Help", keys.Help.Help().Desc)
 
 	// Test action keys
 	assert.Equal(t, "n", keys.NewVersion.Keys()[0])
-	assert.Equal(t, "new version", keys.NewVersion.Help().Desc)
+	assert.Equal(t, "New version", keys.NewVersion.Help().Desc)
 
 	assert.Equal(t, "c", keys.Copy.Keys()[0])
-	assert.Equal(t, "copy", keys.Copy.Help().Desc)
+	assert.Equal(t, "Copy", keys.Copy.Help().Desc)
 
 	assert.Equal(t, "r", keys.Restore.Keys()[0])
-	assert.Equal(t, "restore", keys.Restore.Help().Desc)
+	assert.Equal(t, "Restore", keys.Restore.Help().Desc)
 
-	assert.Equal(t, "F5", keys.Refresh.Keys()[0])
-	assert.Equal(t, "refresh", keys.Refresh.Help().Desc)
+	assert.Equal(t, "esc", keys.Refresh.Keys()[0])
+	assert.Equal(t, "Refresh", keys.Refresh.Help().Desc)
 
 	assert.Equal(t, "p", keys.ProjectId.Keys()[0])
 	assert.Equal(t, "Set ProjectId", keys.ProjectId.Help().Desc)
 
 	assert.Equal(t, "v", keys.Versions.Keys()[0])
-	assert.Equal(t, "View Versions", keys.Versions.Help().Desc)
+	assert.Equal(t, "View versions", keys.Versions.Help().Desc)
+
+	// Test Visual key binding
+	assert.Equal(t, "v", keys.Visual.Keys()[0])
+	assert.Equal(t, "Visual", keys.Visual.Help().Desc)
+
+	// Test Yank key binding
+	assert.Equal(t, "y", keys.Yank.Keys()[0])
+	assert.Equal(t, "Yank", keys.Yank.Help().Desc)
+
+	// Test More key binding
+	assert.Equal(t, "?", keys.More.Keys()[0])
+	assert.Equal(t, "More", keys.More.Help().Desc)
 
 	assert.Equal(t, "i", keys.Info.Keys()[0])
-	assert.Equal(t, "Secret Info", keys.Info.Help().Desc)
+	assert.Equal(t, "Secret info", keys.Info.Help().Desc)
 
 	assert.Equal(t, "ctrl+c", keys.Quit.Keys()[0])
-	assert.Equal(t, "quit", keys.Quit.Help().Desc)
+	assert.Equal(t, "Quit", keys.Quit.Help().Desc)
 }
 
 func (suite *HelpTestSuite) TestHelpStructFields() {
@@ -164,6 +177,7 @@ func TestKeyMapStruct(t *testing.T) {
 	// Test that all expected fields are present in the keyMap
 	assert.NotNil(t, keys.Filter)
 	assert.NotNil(t, keys.Search)
+	assert.NotNil(t, keys.NewSecret)
 	assert.NotNil(t, keys.Up)
 	assert.NotNil(t, keys.Down)
 	assert.NotNil(t, keys.Left)
@@ -175,27 +189,30 @@ func TestKeyMapStruct(t *testing.T) {
 	assert.NotNil(t, keys.Restore)
 	assert.NotNil(t, keys.ProjectId)
 	assert.NotNil(t, keys.Versions)
+	assert.NotNil(t, keys.Visual)
+	assert.NotNil(t, keys.Yank)
+	assert.NotNil(t, keys.More)
 	assert.NotNil(t, keys.Info)
 	assert.NotNil(t, keys.Quit)
 }
 
 func (suite *HelpTestSuite) TestViewContainsKeys() {
 	t := suite.T()
-	suite.help.SetWidth(80)
+	suite.help.SetWidth(120)
 
 	view := suite.help.View()
 
 	// The view should contain some of the key bindings from short help
 	assert.Contains(t, view, "/")
 	assert.Contains(t, view, "c")
-	assert.Contains(t, view, "p")
-	// ctrl+c is in full help, not short help, so let's check for "r" (restore) instead
+	assert.Contains(t, view, "v")
+	assert.Contains(t, view, "y")
 	assert.Contains(t, view, "r")
 }
 
 func (suite *HelpTestSuite) TestUpdateWithDifferentMessages() {
 	// Test with key message
-	keyMsg := tea.KeyMsg{Type: tea.KeyDown}
+	keyMsg := tea.KeyPressMsg{Code: tea.KeyDown}
 	_, cmd1 := suite.help.Update(keyMsg)
 	
 	// Test with other message

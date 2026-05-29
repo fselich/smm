@@ -3,14 +3,16 @@ package view
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/rs/zerolog/log"
 	"path/filepath"
 	client "smm/internal/client"
 	"smm/internal/ui"
 	"sort"
 	"time"
+
+	"charm.land/bubbles/v2/list"
+	"charm.land/bubbles/v2/paginator"
+	tea "charm.land/bubbletea/v2"
+	"github.com/rs/zerolog/log"
 )
 
 type Secret struct {
@@ -100,6 +102,7 @@ func NewSecretsList(width, height int, gcp client.Client) SecretsList {
 	myList.SetShowStatusBar(false)
 	myList.SetShowFilter(false)
 	myList.SetShowPagination(true)
+	myList.Paginator.Type = paginator.Arabic
 	myList.StopSpinner()
 	myList.DisableQuitKeybindings()
 	myList.Filter = list.UnsortedFilter
@@ -199,7 +202,7 @@ func (sl *SecretsList) Update(msg tea.Msg) (SecretsList, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
-	if _, ok := msg.(tea.KeyMsg); ok && !sl.IsFocused {
+	if _, ok := msg.(tea.KeyPressMsg); ok && !sl.IsFocused {
 		return *sl, cmd
 	}
 
@@ -207,7 +210,7 @@ func (sl *SecretsList) Update(msg tea.Msg) (SecretsList, tea.Cmd) {
 	cmds = append(cmds, cmd)
 
 	//Fix for resizing after filtering
-	if msg, ok := msg.(tea.KeyMsg); ok {
+	if msg, ok := msg.(tea.KeyPressMsg); ok {
 		switch msg.String() {
 		case "esc":
 			resizeCmd := func() tea.Msg {

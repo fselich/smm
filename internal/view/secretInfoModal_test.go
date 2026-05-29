@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"smm/internal/client"
@@ -58,7 +58,7 @@ func (suite *SecretInfoModalTestSuite) TestInit() {
 
 func (suite *SecretInfoModalTestSuite) TestUpdateEscapeKey() {
 	t := suite.T()
-	keyMsg := tea.KeyMsg{Type: tea.KeyEsc}
+	keyMsg := tea.KeyPressMsg{Code: tea.KeyEsc}
 
 	modal, cmd := suite.modal.Update(keyMsg)
 
@@ -68,7 +68,7 @@ func (suite *SecretInfoModalTestSuite) TestUpdateEscapeKey() {
 
 func (suite *SecretInfoModalTestSuite) TestUpdateQKey() {
 	t := suite.T()
-	keyMsg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}}
+	keyMsg := tea.KeyPressMsg{Text: "q"}
 
 	modal, cmd := suite.modal.Update(keyMsg)
 

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/acarl005/stripansi"
-	"github.com/charmbracelet/lipgloss"
+	lipgloss "charm.land/lipgloss/v2"
 	"github.com/muesli/ansi"
 	"github.com/muesli/reflow/truncate"
 	"github.com/muesli/termenv"

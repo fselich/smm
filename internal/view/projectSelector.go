@@ -1,9 +1,9 @@
 package view
 
 import (
-	"github.com/charmbracelet/bubbles/textinput"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/textinput"
+	tea "charm.land/bubbletea/v2"
+	lipgloss "charm.land/lipgloss/v2"
 	"smm/internal/config"
 )
 
@@ -29,7 +29,7 @@ func NewProjectSelectorModal() *ProjectSelector {
 	projectId.Placeholder = ""
 	projectId.Focus()
 	projectId.CharLimit = 128
-	projectId.Width = 32
+	projectId.SetWidth(32)
 
 	alertStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#FF6B6B")).
@@ -50,9 +50,9 @@ func (p *ProjectSelector) Update(msg tea.Msg) (Modal, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.Type {
-		case tea.KeyEnter:
+	case tea.KeyPressMsg:
+		switch msg.String() {
+		case "enter":
 
 			config.SetSelectedProject(p.teaView.Value())
 			config.AddProjectID(p.teaView.Value())

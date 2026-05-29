@@ -1,6 +1,10 @@
 package ui
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	lipgloss "charm.land/lipgloss/v2"
+)
+
+var lightDark = lipgloss.LightDark(true)
 
 func StyleLow() lipgloss.Style {
 	return lipgloss.NewStyle().Foreground(lipgloss.Color("#5a5a5a"))
@@ -9,8 +13,8 @@ func StyleLow() lipgloss.Style {
 func StyleSelected() lipgloss.Style {
 	return lipgloss.NewStyle().
 		Border(lipgloss.NormalBorder(), false, false, false, true).
-		BorderForeground(lipgloss.AdaptiveColor{Light: "#F793FF", Dark: "#AD58B4"}).
-		Foreground(lipgloss.AdaptiveColor{Light: "#EE6FF8", Dark: "#EE6FF8"}).
+		BorderForeground(lightDark(lipgloss.Color("#F793FF"), lipgloss.Color("#AD58B4"))).
+		Foreground(lipgloss.Color("#EE6FF8")).
 		Padding(0, 0, 0, 1).
 		Foreground(lipgloss.Color("#000000")).
 		BorderLeftForeground(lipgloss.Color("#87CEFA")).
@@ -19,7 +23,7 @@ func StyleSelected() lipgloss.Style {
 
 func StyleUnselected() lipgloss.Style {
 	return lipgloss.NewStyle().
-		Foreground(lipgloss.AdaptiveColor{Light: "#1a1a1a", Dark: "#dddddd"}).
+		Foreground(lightDark(lipgloss.Color("#1a1a1a"), lipgloss.Color("#dddddd"))).
 		Padding(0, 0, 0, 2).
 		Foreground(lipgloss.Color("#87CEFA"))
 }

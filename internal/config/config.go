@@ -108,3 +108,7 @@ func GetTypeByProjectId(projectId string) string {
 func GetLogPath() string {
 	return viper.GetString("logPath")
 }
+
+func ExpermientalEnabled() bool {
+	return viper.GetBool("experimental")
+}

@@ -161,6 +161,29 @@ func (g *Gcp) GetSecretVersion(secretName, version string) ([]byte, error) {
 	return result.Payload.Data, nil
 }
 
+func (g *Gcp) CreateSecret(name string) error {
+	parent := fmt.Sprintf("projects/%s", g.projectID)
+	req := &secretmanagerpb.CreateSecretRequest{
+		Parent:   parent,
+		SecretId: name,
+		Secret: &secretmanagerpb.Secret{
+			Replication: &secretmanagerpb.Replication{
+				Replication: &secretmanagerpb.Replication_Automatic_{
+					Automatic: &secretmanagerpb.Replication_Automatic{},
+				},
+			},
+		},
+	}
+
+	_, err := g.client.CreateSecret(g.ctx, req)
+	if err != nil {
+		return fmt.Errorf("failed to create secret %q: %w", name, err)
+	}
+	g.secretInfos = nil
+	log.Info().Msgf("Created secret: %s", name)
+	return nil
+}
+
 func (g *Gcp) AddSecretVersion(secretName string, payload []byte) error {
 	parent := fmt.Sprintf("projects/%s/secrets/%s", g.projectID, secretName)
 
