@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.2.1] - 2026-05-30
+## [0.2.5] - 2026-05-30
 
 ### Added
 - Interactive secret creation form (`ctrl+n`)
