@@ -144,10 +144,6 @@ func TestKeyBindings(t *testing.T) {
 	assert.Equal(t, "y", keys.Yank.Keys()[0])
 	assert.Equal(t, "Yank", keys.Yank.Help().Desc)
 
-	// Test More key binding
-	assert.Equal(t, "?", keys.More.Keys()[0])
-	assert.Equal(t, "More", keys.More.Help().Desc)
-
 	assert.Equal(t, "i", keys.Info.Keys()[0])
 	assert.Equal(t, "Secret info", keys.Info.Help().Desc)
 
@@ -183,7 +179,6 @@ func TestKeyMapStruct(t *testing.T) {
 	assert.NotNil(t, keys.Versions)
 	assert.NotNil(t, keys.Visual)
 	assert.NotNil(t, keys.Yank)
-	assert.NotNil(t, keys.More)
 	assert.NotNil(t, keys.Info)
 	assert.NotNil(t, keys.Quit)
 }
