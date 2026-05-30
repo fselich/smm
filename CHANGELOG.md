@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.2.1] - 2026-05-30
+
+### Added
+- Interactive secret creation form (`ctrl+n`)
+- Brace expansion for creating multiple secrets at once (e.g. `secret-{dev,staging,prod}`)
+- Migration from bubbletea v1 to bubbletea v2
+
+### Changed
+- Refactored model/view separation for secrets page
+- Updated list delegate for bubbletea v2 compatibility
+- Simplified overlay rendering
+
+### Fixed
+- Tests updated for bubbletea v2 compatibility
+
+### Security
+- Updated golang.org/x/crypto to v0.45.0
+- Updated google.golang.org/grpc to v1.79.3
+- Updated go.opentelemetry.io/otel to v1.41.0
+
 ## [0.1.14] - 2025-09-12
 
 ### Fixed
