@@ -206,11 +206,11 @@ func (suite *HelpTestSuite) TestUpdateWithDifferentMessages() {
 	// Test with key message
 	keyMsg := tea.KeyPressMsg{Code: tea.KeyDown}
 	_, cmd1 := suite.help.Update(keyMsg)
-	
+
 	// Test with other message
 	otherMsg := "some string message"
 	_, cmd2 := suite.help.Update(otherMsg)
-	
+
 	// Both should return some result (cmd might be nil, that's ok)
 	_ = cmd1
 	_ = cmd2

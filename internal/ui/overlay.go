@@ -5,8 +5,8 @@ import (
 	runewidth "github.com/mattn/go-runewidth"
 	"strings"
 
-	"github.com/acarl005/stripansi"
 	lipgloss "charm.land/lipgloss/v2"
+	"github.com/acarl005/stripansi"
 	"github.com/muesli/ansi"
 	"github.com/muesli/reflow/truncate"
 	"github.com/muesli/termenv"

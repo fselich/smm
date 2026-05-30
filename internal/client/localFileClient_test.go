@@ -66,7 +66,7 @@ func TestLocalFileClient_CreateSecretInfo(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.env")
 	testContent := "DATABASE_URL=localhost:5432\nAPI_KEY=secret123"
-	
+
 	err = os.WriteFile(testFile, []byte(testContent), 0644)
 	if err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
@@ -108,7 +108,7 @@ func TestLocalFileClient_GetSecretVersions(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.env")
 	testContent := "DATABASE_URL=localhost:5432"
-	
+
 	err = os.WriteFile(testFile, []byte(testContent), 0644)
 	if err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
@@ -157,7 +157,7 @@ func TestLocalFileClient_GetSecret(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.env")
 	testContent := "DATABASE_URL=localhost:5432\nAPI_KEY=secret123"
-	
+
 	err = os.WriteFile(testFile, []byte(testContent), 0644)
 	if err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
@@ -191,7 +191,7 @@ func TestLocalFileClient_SearchInSecrets(t *testing.T) {
 
 	// Create temporary files for testing
 	tmpDir := t.TempDir()
-	
+
 	// File 1: Contains "database"
 	testFile1 := filepath.Join(tmpDir, "db.env")
 	testContent1 := "DATABASE_URL=localhost:5432"
@@ -244,7 +244,7 @@ func TestLocalFileClient_SearchInSecrets(t *testing.T) {
 // TestLocalFileClient_GenerateSecretName tests the new secret naming functionality
 func TestLocalFileClient_GenerateSecretName(t *testing.T) {
 	client := &LocalFileClient{}
-	
+
 	tests := []struct {
 		name         string
 		filePath     string
@@ -330,7 +330,7 @@ func TestLocalFileClient_GenerateSecretName(t *testing.T) {
 // TestLocalFileClient_FileMatchesType tests the file type matching functionality
 func TestLocalFileClient_FileMatchesType(t *testing.T) {
 	client := &LocalFileClient{}
-	
+
 	tests := []struct {
 		name     string
 		fileName string
@@ -368,10 +368,10 @@ func TestLocalFileClient_CreateSecretInfoWithNewName(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
-	
+
 	testFile := filepath.Join(projectDir, ".env.dev")
 	testContent := "DATABASE_URL=localhost:5432\nAPI_KEY=secret123"
-	
+
 	err = os.WriteFile(testFile, []byte(testContent), 0644)
 	if err != nil {
 		t.Fatalf("Failed to create test file: %v", err)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"smm/internal/braceexpand"
 	"smm/internal/client"
 	"smm/internal/config"
 	"smm/internal/editor"
@@ -137,16 +138,43 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 		s.components.list.DeepSearch(msg.Query, s.gcp)
 		s.Modal = nil
 		s.components.detail.SetFilteredValue(msg.Query)
-	case view.CreateSecretMessage:
+	case view.CreateSecretsMessage:
 		s.Modal = nil
-		err := s.gcp.CreateSecret(msg.Name)
-		if err != nil {
-			log.Error().Err(err).Msg("Error creating secret")
+		names := msg.Names
+		if len(names) == 0 {
 			s.components.toast.SetText("Error creating secret")
 			return nil
 		}
+		if len(names) > braceexpand.MaxBatchSize {
+			s.components.toast.SetText("Too many secrets")
+			return nil
+		}
 		s.Init()
-		s.components.toast.SetText("Secret created: " + msg.Name)
+
+		if len(names) == 1 {
+			err := s.gcp.CreateSecret(names[0])
+			if err != nil {
+				log.Error().Err(err).Msg("Error creating secret")
+				s.components.toast.SetText("Error creating secret")
+				return nil
+			}
+			s.components.toast.SetText("Secret created: " + names[0])
+		} else {
+			var created, failed int
+			for _, name := range names {
+				if err := s.gcp.CreateSecret(name); err != nil {
+					failed++
+					log.Error().Err(err).Str("secret", name).Msg("Error creating secret")
+				} else {
+					created++
+				}
+			}
+			if failed == 0 {
+				s.components.toast.SetText(fmt.Sprintf("%d secrets created", created))
+			} else {
+				s.components.toast.SetText(fmt.Sprintf("Created %d/%d secrets", created, created+failed))
+			}
+		}
 		resizeCmd := func() tea.Msg {
 			return view.ResizeMessage{}
 		}
@@ -221,16 +249,18 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 						data, err := s.gcp.GetSecretVersion(secretName, strconv.Itoa(version))
 						if err != nil {
 							log.Error().Err(err).Msg("Error getting secret version")
+							s.components.toast.SetText("No content to edit")
 							return nil
 						}
 						secretData = string(data)
 					} else {
 						data, err := s.gcp.GetSecret(secretName)
 						if err != nil {
-							log.Error().Err(err).Msg("Error getting secret")
-							return nil
+							log.Error().Err(err).Msg("Error getting secret, starting with empty content")
+							secretData = ""
+						} else {
+							secretData = string(data)
 						}
-						secretData = string(data)
 					}
 
 					_, err = f.WriteString(secretData)
@@ -259,11 +289,10 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 				case "ctrl+c":
 					return tea.Quit
 				case "v":
-					if config.ExpermientalEnabled() == false {
-						return cmd
-					}
-
 					if s.components.detail.IsFocused {
+						if !config.ExpermientalEnabled() {
+							return cmd
+						}
 						s.components.detail.EnterVisualMode()
 					} else {
 						selected := s.components.list.SelectedItem()
@@ -445,7 +474,7 @@ func (s *Secrets) showSecret() tea.Cmd {
 		if selected.Type() == "version" {
 			versionSecret, err := s.gcp.GetSecretVersion(selected.FullPath(), strconv.Itoa(selected.Version()))
 			if err != nil {
-				text = "Error loading secret version: " + err.Error()
+				text = "Secret has no content yet"
 			} else {
 				text = ui.SyntaxHighlight(versionSecret)
 				rawText = string(versionSecret)
@@ -453,7 +482,7 @@ func (s *Secrets) showSecret() tea.Cmd {
 		} else {
 			secretData, err := s.gcp.GetSecret(selected.FullPath())
 			if err != nil {
-				text = "Error loading secret: " + err.Error()
+				text = "Secret has no content yet"
 			} else {
 				text = ui.SyntaxHighlight(secretData)
 				rawText = string(secretData)

@@ -1,9 +1,9 @@
 package view
 
 import (
-	"fmt"
 	"charm.land/bubbles/v2/list"
 	tea "charm.land/bubbletea/v2"
+	"fmt"
 	"github.com/muesli/reflow/truncate"
 	"io"
 	"smm/internal/ui"
