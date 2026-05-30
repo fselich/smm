@@ -25,7 +25,7 @@ func (suite *ConfirmTestSuite) TestNewConfirm() {
 	t := suite.T()
 	question := "Do you want to proceed?"
 	message := "some-message"
-	
+
 	confirm := NewConfirm(question, message)
 
 	assert.NotNil(t, confirm)
@@ -67,7 +67,7 @@ func (suite *ConfirmTestSuite) TestUpdate_QuitMessage() {
 	// We need to create a mock update scenario where the confirmation returns a quit command
 	// Since we can't easily mock the internal confirmation model, we'll test the structure
 	modal, cmd := suite.confirm.Update(tea.KeyPressMsg{Code: tea.KeyEsc})
-	
+
 	assert.NotNil(t, modal)
 	// cmd might be nil or not nil depending on the internal state
 	_ = cmd
@@ -86,7 +86,7 @@ func (suite *ConfirmTestSuite) TestUpdate_StringMessage() {
 func TestConfirmationResultMessage(t *testing.T) {
 	result := true
 	msg := "test-message"
-	
+
 	confirmResult := ConfirmationResultMessage{
 		Result: result,
 		Msg:    msg,
@@ -100,13 +100,13 @@ func TestModal_Interface(t *testing.T) {
 	question := "Test question?"
 	message := "test-msg"
 	confirm := NewConfirm(question, message)
-	
+
 	// Test that Confirm implements Modal interface
 	var modal Modal = confirm
-	
+
 	assert.NotNil(t, modal.View())
 	assert.NotNil(t, modal.Init())
-	
+
 	updatedModal, cmd := modal.Update(tea.KeyPressMsg{Code: tea.KeyDown})
 	assert.NotNil(t, updatedModal)
 	_ = cmd
@@ -116,7 +116,7 @@ func (suite *ConfirmTestSuite) TestConfirmFields() {
 	t := suite.T()
 	question := "Custom question?"
 	message := "custom-message"
-	
+
 	confirm := NewConfirm(question, message)
 
 	assert.Equal(t, question, confirm.question)
@@ -137,7 +137,7 @@ func (suite *ConfirmTestSuite) TestViewWithDifferentQuestion() {
 
 func (suite *ConfirmTestSuite) TestMultipleUpdates() {
 	t := suite.T()
-	
+
 	// Test multiple updates in sequence
 	modal1, cmd1 := suite.confirm.Update(tea.KeyPressMsg{Code: tea.KeyDown})
 	assert.NotNil(t, modal1)
@@ -166,7 +166,7 @@ func TestConfirmWithComplexMessage(t *testing.T) {
 		"id":     123,
 		"name":   "test-item",
 	}
-	
+
 	confirm := NewConfirm("Delete item?", complexMsg)
 
 	assert.NotNil(t, confirm)
@@ -175,23 +175,23 @@ func TestConfirmWithComplexMessage(t *testing.T) {
 
 func (suite *ConfirmTestSuite) TestConfirmImplementsModalCorrectly() {
 	t := suite.T()
-	
+
 	// Verify that our confirm struct correctly implements all Modal methods
 	var modal Modal = suite.confirm
-	
+
 	// Test View method
 	view := modal.View()
 	assert.IsType(t, "", view)
-	
+
 	// Test Init method
 	initCmd := modal.Init()
 	assert.NotNil(t, initCmd)
-	
+
 	// Test Update method
 	updatedModal, updateCmd := modal.Update(tea.KeyPressMsg{Code: tea.KeyEnter})
 	assert.NotNil(t, updatedModal)
 	_ = updateCmd
-	
+
 	// Ensure the returned modal is still the same type
 	_, ok := updatedModal.(*Confirm)
 	assert.True(t, ok)

@@ -156,7 +156,7 @@ func (f FakeClient) SearchInSecrets(query string) ([]SecretInfo, error) {
 	for i := 0; i < numResults; i++ {
 		secretName := fmt.Sprintf("%s-%s-secret", query, fk.Lorem().Word())
 		timeOffset := time.Duration(rng.Int64N(int64(time.Hour * 24 * 365)))
-		
+
 		results[i] = SecretInfo{
 			Name:        secretName,
 			FullPath:    fmt.Sprintf("projects/test-project/secrets/%s", secretName),
@@ -181,7 +181,7 @@ func (f FakeClient) Secrets() ([]SecretInfo, error) {
 	for i := 0; i <= 29; i++ {
 		secretName := fmt.Sprintf("%s-secret", fk.Lorem().Word())
 		timeOffset := time.Duration(rng.Int64N(int64(time.Hour * 24 * 365)))
-		
+
 		secrets[i] = SecretInfo{
 			Name:        secretName,
 			FullPath:    fmt.Sprintf("projects/test-project/secrets/%s", secretName),
@@ -200,20 +200,20 @@ func (f FakeClient) GetSecretInfo(fullPath string) (SecretInfo, error) {
 		return SecretInfo{}, fmt.Errorf("invalid secret path: %s", fullPath)
 	}
 	secretName := parts[len(parts)-1]
-	
+
 	seed := seedFromSecretName(fullPath)
 	source := rand.NewPCG(uint64(seed), uint64(seed>>32))
 	rng := rand.New(source)
 	fk := faker.NewWithSeed(source)
-	
+
 	baseTime := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 	timeOffset := time.Duration(rng.Int64N(int64(time.Hour * 24 * 365)))
-	
+
 	labels := map[string]string{
 		"environment": "test",
 		"team":        fk.Company().Name(),
 	}
-	
+
 	// Add some random labels
 	if rng.IntN(2) == 0 {
 		labels["type"] = "api-key"
@@ -221,11 +221,11 @@ func (f FakeClient) GetSecretInfo(fullPath string) (SecretInfo, error) {
 	if rng.IntN(2) == 0 {
 		labels["region"] = "us-central1"
 	}
-	
+
 	annotations := map[string]string{
 		"description": fk.Lorem().Sentence(5),
 	}
-	
+
 	// Add some random annotations
 	if rng.IntN(2) == 0 {
 		annotations["owner"] = fk.Person().Name()
@@ -233,7 +233,7 @@ func (f FakeClient) GetSecretInfo(fullPath string) (SecretInfo, error) {
 	if rng.IntN(2) == 0 {
 		annotations["last-rotated"] = time.Now().AddDate(0, -rng.IntN(12), -rng.IntN(30)).Format("2006-01-02")
 	}
-	
+
 	return SecretInfo{
 		Name:        secretName,
 		FullPath:    fullPath,

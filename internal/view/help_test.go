@@ -144,10 +144,6 @@ func TestKeyBindings(t *testing.T) {
 	assert.Equal(t, "y", keys.Yank.Keys()[0])
 	assert.Equal(t, "Yank", keys.Yank.Help().Desc)
 
-	// Test More key binding
-	assert.Equal(t, "?", keys.More.Keys()[0])
-	assert.Equal(t, "More", keys.More.Help().Desc)
-
 	assert.Equal(t, "i", keys.Info.Keys()[0])
 	assert.Equal(t, "Secret info", keys.Info.Help().Desc)
 
@@ -183,7 +179,6 @@ func TestKeyMapStruct(t *testing.T) {
 	assert.NotNil(t, keys.Versions)
 	assert.NotNil(t, keys.Visual)
 	assert.NotNil(t, keys.Yank)
-	assert.NotNil(t, keys.More)
 	assert.NotNil(t, keys.Info)
 	assert.NotNil(t, keys.Quit)
 }
@@ -206,11 +201,11 @@ func (suite *HelpTestSuite) TestUpdateWithDifferentMessages() {
 	// Test with key message
 	keyMsg := tea.KeyPressMsg{Code: tea.KeyDown}
 	_, cmd1 := suite.help.Update(keyMsg)
-	
+
 	// Test with other message
 	otherMsg := "some string message"
 	_, cmd2 := suite.help.Update(otherMsg)
-	
+
 	// Both should return some result (cmd might be nil, that's ok)
 	_ = cmd1
 	_ = cmd2

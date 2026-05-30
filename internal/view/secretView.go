@@ -28,13 +28,13 @@ func NewSecretView(width, height int) SecretView {
 	detail.YPosition = 0
 
 	return SecretView{
-		teaView: detail,
-		Hidden: false,
-		IsFocused: false,
+		teaView:     detail,
+		Hidden:      false,
+		IsFocused:   false,
 		IsFiltering: false,
 		FilterValue: "",
-		isFiltered: false,
-		cursorLine: -1,
+		isFiltered:  false,
+		cursorLine:  -1,
 	}
 }
 

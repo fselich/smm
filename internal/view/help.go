@@ -26,7 +26,6 @@ type keyMap struct {
 	Versions   key.Binding
 	Visual     key.Binding
 	Yank       key.Binding
-	More       key.Binding
 	Info       key.Binding
 	Quit       key.Binding
 }
@@ -39,9 +38,9 @@ type Help struct {
 // of the key.Map interface.
 func (k keyMap) ShortHelp() []key.Binding {
 	if config.ExpermientalEnabled() {
-		return []key.Binding{k.Filter, k.Search, k.NewSecret, k.NewVersion, k.Versions, k.Restore, k.Copy, k.Visual, k.Yank, k.More, k.Quit}
+		return []key.Binding{k.Filter, k.Search, k.NewSecret, k.NewVersion, k.Versions, k.Restore, k.Copy, k.Visual, k.Yank, k.Help, k.Quit}
 	} else {
-		return []key.Binding{k.Filter, k.Search, k.NewSecret, k.NewVersion, k.Versions, k.Restore, k.Copy, k.More, k.Quit}
+		return []key.Binding{k.Filter, k.Search, k.NewSecret, k.NewVersion, k.Versions, k.Restore, k.Copy, k.Help, k.Quit}
 	}
 }
 
@@ -52,13 +51,13 @@ func (k keyMap) FullHelp() [][]key.Binding {
 		return [][]key.Binding{
 			{k.Up, k.Down, k.Left, k.Right, k.Filter, k.Search, k.Refresh},
 			{k.NewSecret, k.NewVersion, k.Versions, k.Restore, k.Info, k.Copy},
-			{k.Visual, k.Yank, k.ProjectId, k.Help, k.More, k.Quit},
+			{k.Visual, k.Yank, k.ProjectId, k.Help, k.Quit},
 		}
 	} else {
 		return [][]key.Binding{
 			{k.Up, k.Down, k.Left, k.Right, k.Filter, k.Search, k.Refresh},
 			{k.NewSecret, k.NewVersion, k.Versions, k.Restore, k.Info, k.Copy},
-			{k.ProjectId, k.Help, k.More, k.Quit},
+			{k.ProjectId, k.Help, k.Quit},
 		}
 	}
 }
@@ -129,10 +128,6 @@ var keys = keyMap{
 	Yank: key.NewBinding(
 		key.WithKeys("y"),
 		key.WithHelp("y", "Yank"),
-	),
-	More: key.NewBinding(
-		key.WithKeys("?"),
-		key.WithHelp("?", "More"),
 	),
 	Info: key.NewBinding(
 		key.WithKeys("i"),

@@ -14,11 +14,11 @@ import (
 
 type SecretsListTestSuite struct {
 	suite.Suite
-	fake         faker.Faker
-	secretsList  SecretsList
-	mockClient   client.FakeClient
-	width        int
-	height       int
+	fake        faker.Faker
+	secretsList SecretsList
+	mockClient  client.FakeClient
+	width       int
+	height      int
 }
 
 func (suite *SecretsListTestSuite) SetupTest() {
@@ -200,7 +200,7 @@ func (suite *SecretsListTestSuite) TestSelectByName() {
 	t := suite.T()
 	// Create specific client for this test
 	secretsList := NewSecretsList(80, 24, suite.mockClient)
-	
+
 	// Get first secret name from fake client
 	firstSecret := secretsList.teaView.Items()[0].(Secret).Title()
 
