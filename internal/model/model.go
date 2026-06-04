@@ -98,15 +98,19 @@ func (m *Model) setProjectId(projectId string) error {
 		return nil
 	}
 
-	var err error
 	projectType := config.GetTypeByProjectId(projectId)
 	if projectType == "gcp" {
-		m.gcp, err = client.NewGcp(projectId)
+		gcp, err := client.NewGcp(projectId)
+		if err != nil {
+			return err
+		}
+		m.gcp = gcp
 	} else {
-		m.gcp, err = client.NewFakeClient(projectId)
-	}
-	if err != nil {
-		return err
+		fc, err := client.NewFakeClient(projectId)
+		if err != nil {
+			return err
+		}
+		m.gcp = fc
 	}
 
 	return nil
