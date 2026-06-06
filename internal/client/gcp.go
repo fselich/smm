@@ -238,6 +238,38 @@ func (g *Gcp) SearchInSecrets(query string) ([]SecretInfo, error) {
 	return foundSecrets, nil
 }
 
+func (g *Gcp) DeleteSecret(name string) error {
+	log.Info().Str("secret", name).Msg("Deleting secret")
+
+	req := &secretmanagerpb.DeleteSecretRequest{
+		Name: name,
+	}
+
+	if err := g.client.DeleteSecret(g.ctx, req); err != nil {
+		return fmt.Errorf("failed to delete secret %q: %w", name, err)
+	}
+
+	g.secretInfos = nil
+	log.Info().Str("secret", name).Msg("Secret deleted")
+	return nil
+}
+
+func (g *Gcp) DestroySecretVersion(name string, version int) error {
+	fullPath := fmt.Sprintf("%s/versions/%d", name, version)
+	log.Info().Str("version", fullPath).Msg("Destroying secret version")
+
+	req := &secretmanagerpb.DestroySecretVersionRequest{
+		Name: fullPath,
+	}
+
+	if _, err := g.client.DestroySecretVersion(g.ctx, req); err != nil {
+		return fmt.Errorf("failed to destroy secret version %q: %w", fullPath, err)
+	}
+
+	log.Info().Str("version", fullPath).Msg("Secret version destroyed")
+	return nil
+}
+
 func (g *Gcp) GetSecretInfo(fullPath string) (SecretInfo, error) {
 	for _, secretInfo := range g.secretInfos {
 		if secretInfo.FullPath == fullPath {

@@ -65,3 +65,22 @@ func StyleToast() lipgloss.Style {
 		Foreground(lipgloss.Color("#FFFF00")).
 		Align(lipgloss.Center)
 }
+
+func StyleSelectedButton() lipgloss.Style {
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#000000")).
+		Background(lipgloss.Color("#87CEFA")).
+		Padding(0, 1)
+}
+
+func StyleUnselectedButton() lipgloss.Style {
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#FFFFFF")).
+		Padding(0, 1)
+}
+
+func StyleDisabledButton() lipgloss.Style {
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#555555")).
+		Padding(0, 1)
+}

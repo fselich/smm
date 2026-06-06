@@ -222,6 +222,38 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 			} else {
 				s.components.toast.SetText("Restore canceled")
 			}
+		case view.DeleteConfirmMsg:
+			s.Modal = nil
+			deleteMsg := msg.Msg.(view.DeleteConfirmMsg)
+			if msg.Result {
+				var toastText string
+				switch deleteMsg.Type {
+				case view.DeleteSecret:
+					err := s.gcp.DeleteSecret(deleteMsg.FullPath)
+					if err != nil {
+						log.Error().Err(err).Msg("Error deleting secret")
+						toastText = "Error deleting secret"
+					} else {
+						toastText = "Secret deleted"
+					}
+				case view.DeleteVersion:
+					err := s.gcp.DestroySecretVersion(deleteMsg.FullPath, deleteMsg.Version)
+					if err != nil {
+						log.Error().Err(err).Msg("Error deleting version")
+						toastText = "Error deleting version"
+					} else {
+						toastText = "Version deleted"
+					}
+				}
+				s.Init()
+				s.components.toast.SetText(toastText)
+				resizeCmd := func() tea.Msg {
+					return view.ResizeMessage{}
+				}
+				cmds = append(cmds, resizeCmd)
+			} else {
+				s.components.toast.SetText("Canceled")
+			}
 		}
 	}
 
@@ -317,6 +349,18 @@ func (s *Secrets) Update(msg tea.Msg) tea.Cmd {
 						s.components.list.Select(selected.Index())
 						return cmd
 					}
+				case "ctrl+d":
+					selected := s.components.list.SelectedItem()
+					if selected.Type() == "current" {
+						s.Modal = view.NewDeleteSecretConfirm(selected.Title(), selected.FullPath())
+					} else {
+						s.Modal = view.NewDeleteVersionConfirm(
+							selected.Title(),
+							selected.Related().FullPath(),
+							selected.Version(),
+						)
+					}
+					cmds = append(cmds, s.Modal.Init())
 				case "c":
 					secretName := s.components.list.SelectedItem().FullPath()
 					data, err := s.gcp.GetSecret(secretName)

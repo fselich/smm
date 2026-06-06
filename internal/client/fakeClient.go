@@ -138,6 +138,14 @@ func (f FakeClient) CreateSecret(name string) error {
 	return nil
 }
 
+func (f FakeClient) DeleteSecret(name string) error {
+	return nil
+}
+
+func (f FakeClient) DestroySecretVersion(name string, version int) error {
+	return nil
+}
+
 func (f FakeClient) AddSecretVersion(secretName string, payload []byte) error {
 	return nil
 }

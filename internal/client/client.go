@@ -6,6 +6,8 @@ type Client interface {
 	GetSecretVersion(secretName, version string) ([]byte, error)
 	AddSecretVersion(secretName string, payload []byte) error
 	CreateSecret(name string) error
+	DeleteSecret(name string) error
+	DestroySecretVersion(name string, version int) error
 	SearchInSecrets(query string) ([]SecretInfo, error)
 	Secrets() ([]SecretInfo, error)
 	GetSecretInfo(fullPath string) (SecretInfo, error)

@@ -548,6 +548,24 @@ func (l *LocalFileClient) SearchInSecrets(query string) ([]SecretInfo, error) {
 }
 
 // findSecretPath finds the full file path for a given secret name
+func (l *LocalFileClient) DeleteSecret(name string) error {
+	filePath, err := l.findSecretPath(name)
+	if err != nil {
+		return fmt.Errorf("secret not found for deletion: %w", err)
+	}
+
+	if err := os.Remove(filePath); err != nil {
+		return fmt.Errorf("failed to delete file %s: %w", filePath, err)
+	}
+
+	log.Info().Str("secret", name).Str("path", filePath).Msg("Secret file deleted")
+	return nil
+}
+
+func (l *LocalFileClient) DestroySecretVersion(name string, version int) error {
+	return fmt.Errorf("version deletion not supported for local file client")
+}
+
 func (l *LocalFileClient) findSecretPath(secretName string) (string, error) {
 	secrets, err := l.scanFiles()
 	if err != nil {
