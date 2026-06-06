@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0] - 2026-06-06
+
+### Added
+- Delete secret/version with confirmation dialog (`ctrl+d`)
+
+### Fixed
+- Empty project initialization bug (thanks @drodbar) 
+
 ## [0.2.5] - 2026-05-30
 
 ### Added
