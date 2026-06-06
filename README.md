@@ -89,6 +89,8 @@ go build -o smm cmd/main.go
 | `n`         | Create new version of secret                               |
 | `v`         | Show/hide secret versions                                  |
 | `r`         | Restore selected version                                   |
+| `Ctrl+N`    | Create new secret                                          |
+| `Ctrl+D`    | Delete secret/version                                      |
 
 ### System
 | Key         | Action                                                     |

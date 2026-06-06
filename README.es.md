@@ -88,6 +88,8 @@ go build -o smm cmd/main.go
 | `n`         | Crear nueva versión del secreto                            |
 | `v`         | Mostrar/ocultar versiones del secreto                      |
 | `r`         | Restaurar versión seleccionada                             |
+| `Ctrl+N`    | Crear nuevo secreto                                        |
+| `Ctrl+D`    | Eliminar secreto/versión                                   |
 
 ### Sistema
 | Tecla       | Acción                                                     |
